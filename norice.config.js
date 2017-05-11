@@ -1,11 +1,20 @@
+const { PropTypes } = require('quan-prop-types');
+
 module.exports = {
+  success: {
+    aaa: 'new glogaa success',
+  },
   paths: {
     '/quan': {
       status: [200, 400],
-      success: {
-        code: 0,
-        msg: 'quans',
+      query: {
+        name: PropTypes.isRequired,
+        age: PropTypes.number,
       },
+      success(req, res) {
+        res.json({ msg: 'quan function success' });
+      },
+      error: { msg: 'quan error' },
     },
 
     '/rice': {
@@ -17,11 +26,18 @@ module.exports = {
       },
 
       post: {
+        body: {
+          name: PropTypes.isRequired,
+          age: PropTypes.number,
+        },
         success: {
           code: 0,
           msg: 'post rice',
         },
       },
+    },
+
+    '/bar': {
     },
 
     '/foo': {

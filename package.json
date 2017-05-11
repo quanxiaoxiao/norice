@@ -1,8 +1,11 @@
 {
   "name": "norice",
-  "version": "1.0.0",
-  "main": "index.js",
+  "version": "0.0.1",
+  "main": "bin/norice",
   "license": "MIT",
+  "bin": {
+    "norice": "./bin/norice"
+  },
   "scripts": {
     "lint": "eslint src"
   },
@@ -13,6 +16,11 @@
     "express": "^4.15.2",
     "gaze": "^1.1.2",
     "lodash": "^4.17.4",
-    "request": "^2.81.0"
+    "moment": "^2.18.1",
+    "quan-prop-types": "^1.0.7",
+    "request": "^2.81.0",
+    "webpack": "^2.5.1",
+    "webpack-dev-middleware": "^1.10.2",
+    "webpack-hot-middleware": "^2.18.0"
   }
 }

@@ -1,31 +1,20 @@
 /* eslint func-names:0 */
-const vm = require('vm');
 const gaze = require('gaze');
-const { readFileSync } = require('fs');
+const EventEmitter = require('events');
 const { resolve } = require('path');
 
-let _str;
 
-const path = resolve(__dirname, '../norice.config.js');
+const emitter = new EventEmitter();
+const path = resolve(process.cwd(), 'norice.config.js');
 let cfg = {};
 
-function exec(str) {
-  if (str === _str) {
-    return false;
+function exec() {
+  const module = require.cache[path];
+  if (module && module.parent) {
+    module.parent.children.splice(module.parent.children.indexOf(module), 1);
   }
-  _str = str;
-  const script = new vm.Script(str);
-  const module = {};
-  script.runInNewContext({ module });
-  if (!module.exports) {
-    throw new Error('Error reading configuration: `module.exports` not set');
-  }
-  const _cfg = module.exports;
-  if (!_cfg.paths) {
-    throw new Error('Error reading configuration: `paths` key is missing');
-  }
-  cfg = _cfg;
-  return true;
+  require.cache[path] = null;
+  cfg = require(path); // eslint-disable-line import/no-dynamic-require
 }
 
 function watch() {
@@ -34,10 +23,9 @@ function watch() {
       throw error;
     }
     this.on('changed', () => {
-      if (exec(readFileSync(path, 'utf-8'))) {
-        console.log('norice configuration reloaded!');
-        process.emit('mockPathsChange', cfg.paths);
-      }
+      exec();
+      console.log('norice configuration reloaded!');
+      emitter.emit('fileChange', cfg);
     });
     this.on('error', () => {
       // ignore
@@ -47,10 +35,30 @@ function watch() {
 
 
 exports.init = function () {
-  exec(readFileSync(path, 'utf-8'));
+  exec();
   watch();
+};
+
+exports.onChange = function (cb) {
+  emitter.on('fileChange', cb);
 };
 
 exports.getPaths = function () {
   return cfg.paths;
+};
+
+exports.getGlobalHandles = function () {
+  return {
+    success: cfg.success || { status: 'ok' },
+    error: cfg.error || { status: 'error' },
+    status: cfg.status || [200, 400],
+  };
+};
+
+exports.getWebpack = function () {
+  return cfg.webpack ? resolve(process.cwd(), cfg.webpack) : null;
+};
+
+exports.getListenerPort = function () {
+  return cfg.port || 3000;
 };

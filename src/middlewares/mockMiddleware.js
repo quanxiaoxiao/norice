@@ -1,6 +1,7 @@
 /* eslint  no-param-reassign:0 */
 const { Router } = require('express');
 const { resolve } = require('path');
+const { checkPropTypes } = require('quan-prop-types');
 const _ = require('lodash');
 const request = require('request');
 const config = require('../config');
@@ -8,23 +9,59 @@ const config = require('../config');
 
 const METHODS = ['get', 'post', 'delete', 'put', 'patch'];
 
+
 function isCompoundMock(mock) {
   const mockKeys = new Set(Object.keys(mock));
   const intersection = new Set(METHODS.filter(x => mockKeys.has(x)));
   return intersection.size === mockKeys.size && mockKeys.size !== 0;
 }
 
-function parseResponse({ req, res }, str) {
-  const matches = str.match(/^proxy:(.+)/);
-  if (matches) {
-    // proxy support only get method
-    const options = {
-      url: `${matches[1]}${req.url}`,
-      headers: Object.assign({}, req.headers),
-    };
-    request.get(options).pipe(res);
-  } else {
-    res.sendFile(resolve(process.cwd(), str));
+function getStatusCode(defaultCode, pos) {
+  return (status) => {
+    if (_.isArray(status)) {
+      return status[pos];
+    }
+    if (status) {
+      return status;
+    }
+    return defaultCode;
+  };
+}
+
+const getSuccessStatusCode = getStatusCode(200, 0);
+const getErrorStatusCode = getStatusCode(400, 1);
+
+function handleMockResponse(req, res, next, mockResponse) {
+  switch (typeof mockResponse) {
+    case 'function':
+      mockResponse(req, res, next);
+      break;
+    case 'object':
+      res.json(mockResponse);
+      break;
+    case 'string': {
+      const matches = mockResponse.match(/^proxy:(.+)/);
+      if (matches) {
+        // proxy only support get method
+        const options = {
+          url: `${matches[1]}${req.url}`,
+          headers: Object.assign({}, req.headers),
+        };
+        request.get(options).pipe(res);
+      } else {
+        res.sendFile(resolve(process.cwd(), mockResponse));
+      }
+      break;
+    }
+    case 'undefined': {
+      const { success: successResponse, error: errorResponse } = config.getGlobalHandles();
+      handleMockResponse(
+        req, res, next, req.isMockRequestSuccess ? successResponse : errorResponse);
+      break;
+    }
+    default:
+      next(new Error(`not support type ${typeof mockResponse}`));
+      break;
   }
 }
 
@@ -36,17 +73,35 @@ function createRoute(mock, path, router) {
   } else {
     const requestMethod = mock.medhod || 'get';
     router[requestMethod](path, (req, res, next) => {
+      let isSuccess = true;
       req.isMockRequest = true;
-      const response = _.isString(mock) ? mock : mock.success;
-      if (_.isFunction(response)) {
-        response(req, res, next);
-      } else if (_.isObject(response)) {
-        res.json(response);
-      } else if (_.isString(response)) {
-        parseResponse({ req, res, next }, response);
-      } else {
-        next(new Error(`not support type ${typeof response}`));
+      switch (requestMethod) {
+        case 'get':
+        case 'delete': {
+          if (mock.query && !checkPropTypes(mock.query, req.query, requestMethod, path)) {
+            isSuccess = false;
+          }
+          break;
+        }
+        case 'post':
+        case 'put':
+        case 'patch': {
+          if (mock.body && !checkPropTypes(mock.body, req.body, requestMethod, path)) {
+            isSuccess = false;
+          }
+          break;
+        }
+        default: break;
       }
+      req.isMockRequestSuccess = isSuccess;
+      res.status(isSuccess ? getSuccessStatusCode(mock.status) : getErrorStatusCode(mock.status));
+      let mockResponse;
+      if (_.isString(mock)) {
+        mockResponse = mock;
+      } else {
+        mockResponse = isSuccess ? mock.success : mock.error;
+      }
+      handleMockResponse(req, res, next, mockResponse);
     });
   }
 }
@@ -59,9 +114,9 @@ function createRouter(router, paths) {
 module.exports = function mockMiddleware() {
   const paths = config.getPaths();
   const router = new Router();
-  process.on('mockPathsChange', (newPaths) => {
-    createRouter(router, newPaths);
-  });
   createRouter(router, paths);
+  config.onChange((cfg) => {
+    createRouter(router, cfg.paths);
+  });
   return router;
 };
