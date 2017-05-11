@@ -8,6 +8,7 @@ const mockMiddleware = require('./middlewares/mockMiddleware');
 const loggerMiddleware = require('./middlewares/loggerMiddleware');
 const webpackMiddleware = require('./middlewares/webpackMiddleware');
 
+
 config.init();
 
 const port = config.getListenerPort() || 3000;
@@ -21,13 +22,24 @@ app.use(bodyParser.json());
 app.use(loggerMiddleware);
 app.use(mockMiddleware());
 
+const wss = require('./webSocket')(server);
+
+app.post('/socket', (req, res) => {
+  const chucks = [];
+  req.on('data', (chuck) => {
+    chucks.push(chuck);
+  });
+  req.on('end', () => {
+    wss.emit('broadcast', Buffer.concat(chucks).toString('utf-8'));
+    res.status(204);
+    res.end();
+  });
+});
 
 const webpackPath = config.getWebpack();
 if (webpackPath) {
-  console.log('-----', webpackPath);
   app.use(webpackMiddleware(webpackPath));
 }
-
 
 server.listen(port, (error) => {
   if (error) {

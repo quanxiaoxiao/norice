@@ -40,11 +40,9 @@ function handleMockResponse(req, res, next, mockResponse) {
       res.json(mockResponse);
       break;
     case 'string': {
-      const matches = mockResponse.match(/^proxy:(.+)/);
-      if (matches) {
-        // proxy only support get method
+      if (/^https?:\/\//.test(mockResponse)) {
         const options = {
-          url: `${matches[1]}${req.url}`,
+          url: `${mockResponse}${req.url}`,
           headers: Object.assign({}, req.headers),
         };
         request.get(options).pipe(res);

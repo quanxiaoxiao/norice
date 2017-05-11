@@ -62,3 +62,7 @@ exports.getWebpack = function () {
 exports.getListenerPort = function () {
   return cfg.port || 3000;
 };
+
+exports.getWebSocketConfig = function () {
+  return cfg.ws;
+};
