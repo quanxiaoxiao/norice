@@ -31,7 +31,7 @@ function getStatusCode(defaultCode, pos) {
 const getSuccessStatusCode = getStatusCode(200, 0);
 const getErrorStatusCode = getStatusCode(400, 1);
 
-function handleMockResponse(req, res, next, mockResponse) {
+function handleMockResponse(req, res, next, mockResponse, mock) {
   switch (typeof mockResponse) {
     case 'function':
       mockResponse(req, res, next);
@@ -41,8 +41,19 @@ function handleMockResponse(req, res, next, mockResponse) {
       break;
     case 'string': {
       if (/^https?:\/\//.test(mockResponse)) {
+        const proxyHost = mockResponse;
+        let url = req.url;
+        if (_.isPlainObject(mock.pathRewrite)) {
+          Object.keys(mock.pathRewrite).forEach((key) => {
+            const reg = new RegExp(key);
+            if (reg.test(url)) {
+              url = url.replace(reg, mock.pathRewrite[key]);
+            }
+          });
+        }
+
         const options = {
-          url: `${mockResponse}${req.url}`,
+          url: `${proxyHost}${url}`,
           headers: Object.assign({}, req.headers),
         };
         request.get(options).pipe(res);
@@ -54,7 +65,7 @@ function handleMockResponse(req, res, next, mockResponse) {
     case 'undefined': {
       const { success: successResponse, error: errorResponse } = config.getGlobalHandles();
       handleMockResponse(
-        req, res, next, req.isMockRequestSuccess ? successResponse : errorResponse);
+        req, res, next, req.isMockRequestSuccess ? successResponse : errorResponse, mock);
       break;
     }
     default:
@@ -99,7 +110,7 @@ function createRoute(mock, path, router) {
       } else {
         mockResponse = isSuccess ? mock.success : mock.error;
       }
-      handleMockResponse(req, res, next, mockResponse);
+      handleMockResponse(req, res, next, mockResponse, mock);
     });
   }
 }
