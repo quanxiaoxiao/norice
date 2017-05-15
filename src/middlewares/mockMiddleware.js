@@ -4,32 +4,13 @@ const { resolve } = require('path');
 const { checkPropTypes } = require('quan-prop-types');
 const _ = require('lodash');
 const request = require('request');
+
 const config = require('../config');
-
-
-const METHODS = ['get', 'post', 'delete', 'put', 'patch'];
-
-
-function isCompoundMock(mock) {
-  const mockKeys = new Set(Object.keys(mock));
-  const intersection = new Set(METHODS.filter(x => mockKeys.has(x)));
-  return intersection.size === mockKeys.size && mockKeys.size !== 0;
-}
-
-function getStatusCode(defaultCode, pos) {
-  return (status) => {
-    if (_.isArray(status)) {
-      return status[pos];
-    }
-    if (status) {
-      return status;
-    }
-    return defaultCode;
-  };
-}
-
-const getSuccessStatusCode = getStatusCode(200, 0);
-const getErrorStatusCode = getStatusCode(400, 1);
+const {
+  isCompoundMock,
+  getErrorStatusCode,
+  getSuccessStatusCode,
+} = require('../mock/helper');
 
 function handleMockResponse(req, res, next, mockResponse, mock) {
   switch (typeof mockResponse) {

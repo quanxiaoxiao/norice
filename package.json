@@ -7,9 +7,12 @@
     "norice": "./bin/norice"
   },
   "scripts": {
-    "lint": "eslint src"
+    "lint": "eslint src",
+    "test": "ava test"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "ava": "^0.19.1"
+  },
   "dependencies": {
     "body-parser": "^1.17.1",
     "cors": "^2.8.3",
@@ -17,7 +20,7 @@
     "gaze": "^1.1.2",
     "lodash": "^4.17.4",
     "moment": "^2.18.1",
-    "quan-prop-types": "^1.0.7",
+    "quan-prop-types": "^1.0.8",
     "request": "^2.81.0",
     "webpack": "^2.5.1",
     "webpack-dev-middleware": "^1.10.2",
