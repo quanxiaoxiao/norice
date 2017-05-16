@@ -11,7 +11,8 @@
     "test": "ava test"
   },
   "devDependencies": {
-    "ava": "^0.19.1"
+    "ava": "^0.19.1",
+    "nock": "^9.0.13"
   },
   "dependencies": {
     "body-parser": "^1.17.1",

@@ -47,12 +47,11 @@ exports.getPaths = function () {
   return cfg.paths;
 };
 
-exports.getGlobalHandles = function () {
-  return {
-    success: cfg.success || { status: 'ok' },
-    error: cfg.error || { status: 'error' },
-    status: cfg.status || [200, 400],
-  };
+exports.getGlobalMock = function () {
+  return Object.assign({
+    success: { status: 'ok' },
+    error: { status: 'error' },
+  }, cfg.global);
 };
 
 exports.getWebpack = function () {
