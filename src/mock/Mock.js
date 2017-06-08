@@ -82,14 +82,14 @@ class Mock {
           request.get({
             url: `${response}${url}`,
             headers: Object.assign({}, options.headers, req.headers),
-          }).pipe(res);
+          }).pipe(res).on('error', () => {});
           break;
         }
         case NORMAL: {
           if (_.isFunction(response)) {
             this.req = req;
             this.res = res;
-            response.call(this, (data) => {
+            response.call(res, (data) => {
               res.json(data);
             });
           } else {

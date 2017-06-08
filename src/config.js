@@ -9,12 +9,21 @@ const path = resolve(process.cwd(), 'norice.config.js');
 let cfg = {};
 
 function exec() {
-  const module = require.cache[path];
-  if (module && module.parent) {
-    module.parent.children.splice(module.parent.children.indexOf(module), 1);
+  const prevModule = require.cache[path];
+  let index = -1;
+  if (prevModule && prevModule.parent) {
+    index = prevModule.parent.children.indexOf(prevModule);
+    prevModule.parent.children.splice(index, 1);
   }
   require.cache[path] = null;
-  cfg = require(path); // eslint-disable-line import/no-dynamic-require
+  try {
+    cfg = require(path); // eslint-disable-line import/no-dynamic-require
+  } catch (e) {
+    require.cache[path] = prevModule;
+    if (index !== -1) {
+      prevModule.parent.children.splice(index, 0, prevModule);
+    }
+  }
 }
 
 function watch() {
