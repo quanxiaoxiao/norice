@@ -7,7 +7,8 @@ const {
 
 module.exports = function paraseRouter(paths) {
   if (!_.isPlainObject(paths)) {
-    throw new Error('`paths` must plain object');
+    console.error('`paths` must plain object');
+    paths = {};
   }
   const keys = Object.keys(paths);
   const mocks = [];
