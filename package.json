@@ -1,6 +1,6 @@
 {
   "name": "norice",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "main": "bin/norice",
   "license": "MIT",
   "bin": {
@@ -11,7 +11,7 @@
     "test": "ava test"
   },
   "devDependencies": {
-    "ava": "^0.19.1",
+    "ava": "^0.20.0",
     "nock": "^9.0.13"
   },
   "dependencies": {
@@ -23,8 +23,8 @@
     "moment": "^2.18.1",
     "quan-prop-types": "^1.0.8",
     "request": "^2.81.0",
-    "webpack": "^2.6.1",
-    "webpack-dev-middleware": "^1.10.2",
+    "webpack": "2.6.1",
+    "webpack-dev-middleware": "^1.11.0",
     "webpack-hot-middleware": "^2.18.0",
     "ws": "^3.0.0"
   }

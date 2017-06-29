@@ -82,7 +82,7 @@ class Mock {
           request.get({
             url: `${response}${url}`,
             headers: Object.assign({}, options.headers, req.headers),
-          }).pipe(res).on('error', () => {});
+          }).pipe(res);
           break;
         }
         case NORMAL: {
