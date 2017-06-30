@@ -56,13 +56,6 @@ exports.getPaths = function () {
   return cfg.paths;
 };
 
-exports.getGlobalMock = function () {
-  return Object.assign({
-    success: { status: 'ok' },
-    error: { status: 'error' },
-  }, cfg.global);
-};
-
 exports.getGlobalResponseHandle = function () {
   return Object.assign({
     success: { status: 'ok' },

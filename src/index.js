@@ -4,11 +4,9 @@ const cors = require('cors');
 const http = require('http');
 const config = require('./config');
 
-// const mockMiddleware = require('./middlewares/mockMiddleware');
 const Router = require('./router');
 const loggerMiddleware = require('./middlewares/loggerMiddleware');
 const webpackMiddleware = require('./middlewares/webpackMiddleware');
-
 
 config.init();
 
@@ -21,7 +19,6 @@ app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(loggerMiddleware);
-// app.use(mockMiddleware());
 app.use(Router());
 
 const wss = require('./webSocket')(server);

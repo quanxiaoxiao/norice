@@ -46,6 +46,9 @@ exports.isValidateHandle = (path, handle) => {
   if (_.isPlainObject(handle)) {
     return true;
   }
+  if (_.isFunction(handle)) {
+    return true;
+  }
   console.error(`path: ${path} is invalidate handle`);
   return false;
 };
