@@ -63,6 +63,13 @@ exports.getGlobalMock = function () {
   }, cfg.global);
 };
 
+exports.getGlobalResponseHandle = function () {
+  return Object.assign({
+    success: { status: 'ok' },
+    error: { status: 'error' },
+  }, cfg.handle);
+};
+
 exports.getWebpack = function () {
   return cfg.webpack ? resolve(process.cwd(), cfg.webpack) : null;
 };

@@ -1,18 +1,6 @@
 import test from 'ava';
 import parseRouter from '../../src/mock/parseRouter';
 
-test('parseRouter should throw error', (t) => {
-  t.throws(() => parseRouter([]));
-  t.throws(() => parseRouter('quan'));
-  t.throws(() => parseRouter('/quan'));
-  t.throws(() => parseRouter(5));
-  t.throws(() => parseRouter(true));
-  t.throws(() => parseRouter(false));
-  t.throws(() => parseRouter());
-  t.throws(() => parseRouter(/quan/));
-  t.throws(() => parseRouter(new Date()));
-});
-
 test('parseRouter should pass or unpass', (t) => {
   t.pass(parseRouter({}));
   t.pass(parseRouter({ '/quan': 'quan' }));

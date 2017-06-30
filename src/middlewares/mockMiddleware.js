@@ -9,6 +9,10 @@ module.exports = function mockMiddleware() {
   function createRoute(mocks) {
     for (let i = 0; i < mocks.length; i++) {
       const mock = mocks[i];
+      if (mock.path.indexOf('/') !== 0) {
+        console.error(`path: ${mock.path} is invalidate`);
+        continue; // eslint-disable-line
+      }
       router[mock.method](mock.path, (req, res, next) => {
         mock.handleResponse(req, res, next);
       });
