@@ -37,6 +37,7 @@ class Route {
     let status;
     if (_.isPlainObject(handle)) {
       const validate = handle.validate || {};
+      this.options = handle.options || {};
       status = handle.status;
       if (method === 'get' || method === 'delete') {
         isSuccess = checkPropTypes(validate, req.query);
@@ -69,7 +70,7 @@ class Route {
 
   handleProxyResponse(req, res) {
     let url = req.url;
-    const { options = {} } = this.response;
+    const options = this.options;
     if (_.isPlainObject(options.pathRewrite)) {
       Object.keys(options.pathRewrite).forEach((key) => {
         const reg = new RegExp(key);
@@ -80,7 +81,7 @@ class Route {
     }
     request.get({
       url: `${this.response}${url}`,
-      headers: Object.assign({}, options.headers, req.headers),
+      headers: Object.assign({}, req.headers, options.headers),
     }).pipe(res);
   }
 
