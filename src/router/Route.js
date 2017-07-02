@@ -5,10 +5,10 @@ const { checkPropTypes } = require('quan-prop-types');
 const { isHttpURL, getSuccessStatusCode, getErrorStatusCode } = require('./helper');
 const config = require('../config');
 
-const HANDLE_TYPE_JSON = 0;
-const HANDLE_TYPE_FILE = 1;
-const HANDLE_TYPE_PROXY = 2;
-const HANDLE_TYPE_FUNCTION = 3;
+const HANDLE_TYPE_JSON = Symbol('json');
+const HANDLE_TYPE_FILE = Symbol('file');
+const HANDLE_TYPE_PROXY = Symbol('proxy');
+const HANDLE_TYPE_FUNCTION = Symbol('function');
 
 class Route {
   constructor(path, handle, method = 'get') {
