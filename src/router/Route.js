@@ -79,7 +79,8 @@ class Route {
         }
       });
     }
-    request.get({
+    const method = req.method.toLowerCase();
+    request[method]({
       url: `${this.response}${url}`,
       headers: Object.assign({}, req.headers, options.headers),
     }).pipe(res);

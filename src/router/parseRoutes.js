@@ -26,7 +26,7 @@ module.exports = function parseRoutes(paths) {
           }
         }
       } else if (isValidateHandle(key, handle)) {
-        routes.push(new Route(key, handle, 'get'));
+        routes.push(new Route(key, handle, handle.method));
       }
     } else {
       console.error(`path: ${key} is invalidate path`);

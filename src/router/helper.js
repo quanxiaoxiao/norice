@@ -43,10 +43,16 @@ exports.isValidateHandle = (path, handle) => {
   if (_.isString(handle)) {
     return true;
   }
-  if (_.isPlainObject(handle)) {
+  if (_.isFunction(handle)) {
     return true;
   }
-  if (_.isFunction(handle)) {
+  if (_.isPlainObject(handle)) {
+    const method = handle.method;
+    if (typeof method !== 'undefined' &&
+      !['all', 'get', 'post', 'delete', 'patch'].includes(method)) {
+      console.error(`path: ${path} can't support this method ${method}`);
+      return false;
+    }
     return true;
   }
   console.error(`path: ${path} is invalidate handle`);
