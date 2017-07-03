@@ -19,7 +19,7 @@ class Route {
 
   setType() {
     const response = this.response;
-    if (_.isPlainObject(response)) {
+    if (_.isPlainObject(response) || Array.isArray(response)) {
       this.type = HANDLE_TYPE_JSON;
     } else if (_.isFunction(response)) {
       this.type = HANDLE_TYPE_FUNCTION;
@@ -70,7 +70,7 @@ class Route {
 
   handleProxyResponse(req, res) {
     let url = req.url;
-    const options = this.options;
+    const options = this.options || {};
     if (_.isPlainObject(options.pathRewrite)) {
       Object.keys(options.pathRewrite).forEach((key) => {
         const reg = new RegExp(key);
