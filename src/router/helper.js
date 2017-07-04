@@ -6,8 +6,11 @@ const { isSubset } = require('../utils/set');
 const DEFAULT_SUCCESS_CODE = 200;
 const DEFAULT_ERROR_CODE = 400;
 
-exports.isCompoundPath = function isCompoundPath(path) {
-  return isSubset(new Set(Object.keys(path)), new Set(METHODS));
+exports.isCompoundPath = function isCompoundPath(handle) {
+  if (!_.isPlainObject(handle)) {
+    return false;
+  }
+  return isSubset(new Set(Object.keys(handle)), new Set(METHODS));
 };
 
 function getStatusCode(defaultCode, pos) {
