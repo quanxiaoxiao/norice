@@ -27,14 +27,16 @@ function exec() {
   try {
     cfg = require(path); // eslint-disable-line import/no-dynamic-require
   } catch (e) {
-    require.cache[path] = prevModule;
-    if (index !== -1) {
-      prevModule.parent.children.splice(index, 0, prevModule);
-    }
-    if (prevModule.children) {
-      prevModule.children.forEach((child) => {
-        require.cache[child.id] = child;
-      });
+    if (prevModule) {
+      require.cache[path] = prevModule;
+      if (index !== -1) {
+        prevModule.parent.children.splice(index, 0, prevModule);
+      }
+      if (prevModule.children) {
+        prevModule.children.forEach((child) => {
+          require.cache[child.id] = child;
+        });
+      }
     }
   }
 }
@@ -80,10 +82,10 @@ exports.getWebpack = function () {
   return cfg.webpack ? resolve(process.cwd(), cfg.webpack) : null;
 };
 
-exports.getListenerPort = function () {
-  return cfg.port || 3000;
-};
-
 exports.getWebSocketConfig = function () {
   return cfg.ws;
+};
+
+exports.getMiddlewares = function () {
+  return cfg.middlewares;
 };

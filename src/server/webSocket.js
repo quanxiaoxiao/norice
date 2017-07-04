@@ -1,5 +1,5 @@
 const WebSocket = require('ws');
-const config = require('./config');
+const config = require('../config');
 
 module.exports = function webSocket(server) {
   const wss = new WebSocket.Server({ server });

@@ -1,5 +1,5 @@
 import test from 'ava';
-import Route from '../../src/router/Route';
+import Route from '../../src/server/router/Route';
 
 test('Route', (t) => {
   let route = new Route('/quan', './data/quan.json');

@@ -4,7 +4,7 @@ const fs = require('fs');
 const request = require('request');
 const { checkPropTypes } = require('quan-prop-types');
 const { isHttpURL, getSuccessStatusCode, getErrorStatusCode } = require('./helper');
-const config = require('../config');
+const config = require('../../config');
 
 const HANDLE_TYPE_JSON = Symbol('json');
 const HANDLE_TYPE_FILE = Symbol('file');

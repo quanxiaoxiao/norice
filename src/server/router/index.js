@@ -1,6 +1,6 @@
 const { Router } = require('express');
 const parseRoutes = require('./parseRoutes');
-const config = require('../config');
+const config = require('../../config');
 
 function createRoutes(router, routes) {
   for (let i = 0; i < routes.length; i++) {

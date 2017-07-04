@@ -1,7 +1,7 @@
 const _ = require('lodash');
 
 const METHODS = ['get', 'post', 'delete', 'put', 'patch'];
-const { isSubset } = require('../utils/set');
+const { isSubset } = require('../../utils/set');
 
 const DEFAULT_SUCCESS_CODE = 200;
 const DEFAULT_ERROR_CODE = 400;

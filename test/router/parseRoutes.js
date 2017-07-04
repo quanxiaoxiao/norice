@@ -1,5 +1,5 @@
 import test from 'ava';
-import parseRoutes from '../../src/router/parseRoutes';
+import parseRoutes from '../../src/server/router/parseRoutes';
 
 test('parseRoutes', (t) => {
   t.deepEqual(parseRoutes({}), []);
