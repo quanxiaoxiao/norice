@@ -8,12 +8,20 @@ const emitter = new EventEmitter();
 const path = resolve(process.cwd(), 'norice.config.js');
 let cfg = {};
 
+
 function exec() {
   const prevModule = require.cache[path];
   let index = -1;
-  if (prevModule && prevModule.parent) {
-    index = prevModule.parent.children.indexOf(prevModule);
-    prevModule.parent.children.splice(index, 1);
+  if (prevModule) {
+    if (prevModule.parent) {
+      index = prevModule.parent.children.indexOf(prevModule);
+      prevModule.parent.children.splice(index, 1);
+    }
+    if (prevModule.children) {
+      prevModule.children.forEach(({ id }) => {
+        require.cache[id] = null;
+      });
+    }
   }
   require.cache[path] = null;
   try {
@@ -22,6 +30,11 @@ function exec() {
     require.cache[path] = prevModule;
     if (index !== -1) {
       prevModule.parent.children.splice(index, 0, prevModule);
+    }
+    if (prevModule.children) {
+      prevModule.children.forEach((child) => {
+        require.cache[child.id] = child;
+      });
     }
   }
 }
