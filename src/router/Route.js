@@ -105,12 +105,24 @@ class Route {
           if (error) {
             res.send(error.msg);
           } else {
-            res.json(dataConvertor(JSON.parse(body)));
+            try {
+              const data = JSON.parse(body);
+              res.json(dataConvertor(data));
+            } catch (e) {
+              console.error(e);
+              res.send(`path: ${this.path} parse json error`);
+            }
           }
         });
       },
       file: (path, dataConvertor = _.identity) => {
-        res.json(dataConvertor(JSON.parse(fs.readFileSync(path))));
+        try {
+          const data = JSON.parse(fs.readFileSync(path));
+          res.json(dataConvertor(data));
+        } catch (e) {
+          console.error(e);
+          res.send(`path: ${this.path} parse json error`);
+        }
       },
     });
   }
