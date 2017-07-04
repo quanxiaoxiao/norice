@@ -1,14 +1,13 @@
 const _ = require('lodash');
 
 const METHODS = ['get', 'post', 'delete', 'put', 'patch'];
+const { isSubset } = require('../utils/set');
 
 const DEFAULT_SUCCESS_CODE = 200;
 const DEFAULT_ERROR_CODE = 400;
 
 exports.isCompoundPath = function isCompoundPath(path) {
-  const pathKeys = new Set(Object.keys(path));
-  const intersection = new Set(METHODS.filter(x => pathKeys.has(x)));
-  return intersection.size === pathKeys.size && pathKeys.size !== 0;
+  return isSubset(new Set(Object.keys(path)), new Set(METHODS));
 };
 
 function getStatusCode(defaultCode, pos) {

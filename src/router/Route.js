@@ -87,8 +87,12 @@ class Route {
   }
 
   handleFunctionResponse(req, res) {
-    this.response.call(res, (data) => {
-      res.json(data);
+    this.response.call(res, (result) => {
+      if (typeof result.pipe === 'function') {
+        result.pipe(res);
+      } else {
+        res.json(result);
+      }
     });
   }
 
