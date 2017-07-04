@@ -1,8 +1,22 @@
 {
   "name": "norice",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "main": "bin/norice",
   "license": "MIT",
+  "engines": {
+    "node": ">= 8.0.0"
+  },
+  "description": "Servers JSON files proxy throngh routes",
+  "keywords": [
+    "JSON",
+    "server",
+    "fake",
+    "proxy",
+    "API",
+    "mock",
+    "data"
+  ],
+  "author": "zhedongHu <quan_xiaoxiao@qq.com>",
   "bin": {
     "norice": "./bin/norice"
   },
@@ -14,6 +28,14 @@
     "ava": "^0.20.0",
     "nock": "^9.0.13"
   },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/quanxiaoxiao/norice.git"
+  },
+  "bugs": {
+    "url": "https://github.com/quanxiaoxiao/norice/issues"
+  },
+  "homepage": "https://github.com/quanxiaoxiao/norice",
   "dependencies": {
     "body-parser": "^1.17.2",
     "cors": "^2.8.3",
