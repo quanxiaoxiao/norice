@@ -1,5 +1,6 @@
 const _ = require('lodash');
 const { resolve } = require('path');
+const fs = require('fs');
 const request = require('request');
 const { checkPropTypes } = require('quan-prop-types');
 const { isHttpURL, getSuccessStatusCode, getErrorStatusCode } = require('./helper');
@@ -80,19 +81,37 @@ class Route {
       });
     }
     const method = req.method.toLowerCase();
-    request[method]({
-      url: `${this.response}${url}`,
-      headers: Object.assign({}, req.headers, options.headers),
-    }).pipe(res);
+    const proxyOptions = Object.assign(
+      {},
+      _.omit(options, ['pathRewrite', 'headers']),
+      {
+        headers: Object.assign({}, req.headers, options.headers),
+      },
+    );
+    request[method](`${this.response}${url}`, proxyOptions)
+      .on('error', (error) => {
+        console.error(error);
+        res.send(error.msg);
+      })
+      .pipe(res);
   }
 
   handleFunctionResponse(req, res) {
-    this.response.call(res, (result) => {
-      if (typeof result.pipe === 'function') {
-        result.pipe(res);
-      } else {
-        res.json(result);
-      }
+    this.response.call(req, {
+      json: data => res.json(data),
+      proxy: (url, dataConvertor = _.identity, options = {}) => {
+        const method = req.method.toLowerCase();
+        request[method](url, options, (error, _res, body) => {
+          if (error) {
+            res.send(error.msg);
+          } else {
+            res.json(dataConvertor(JSON.parse(body)));
+          }
+        });
+      },
+      file: (path, dataConvertor = _.identity) => {
+        res.json(dataConvertor(JSON.parse(fs.readFileSync(path))));
+      },
     });
   }
 
