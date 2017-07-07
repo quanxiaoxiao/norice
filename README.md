@@ -47,6 +47,23 @@ module.exports = {
       }
       file('./data/local-file.json', convertor);
     },
+    '/hhh': {
+      get: {
+        success: {
+          msg: 'get method',
+        }
+      },
+      post: {
+        success: {
+          msg: 'post method',
+        },        
+      },
+      put({ json }) {
+        json({
+          msg: 'put method',
+        });
+      },
+    },
     '/mockjs'({ json }) {
       json(Mock.mock({
         'list|1-10': [{
