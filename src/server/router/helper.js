@@ -7,7 +7,7 @@ const DEFAULT_SUCCESS_CODE = 200;
 const DEFAULT_ERROR_CODE = 400;
 
 exports.isCompoundPath = function isCompoundPath(handle) {
-  if (!_.isPlainObject(handle)) {
+  if (!_.isPlainObject(handle) || _.isEmpty(handle)) {
     return false;
   }
   return isSubset(new Set(Object.keys(handle)), new Set(METHODS));
