@@ -38,7 +38,8 @@ module.exports = {
       function convertor(data) {
           return data.filter(a => a.id === 1);
       }
-      proxy('http://localhost:3001', convertor);
+      const someOptions = {}; // reference https://github.com/request/request
+      proxy('http://localhost:3001', convertor, someOptions);
     },
     '/ggg'({ file }) {
       function convertor(data) {
