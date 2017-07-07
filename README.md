@@ -68,3 +68,42 @@ module.exports = {
   },
 };
 ```
+
+### Verify the field
+```javascript
+const PropTypes = require('quan-prop-types');
+
+module.exports = {
+  paths: {
+    '/aaa': {
+      status: [200, 400],
+      validate: {
+        name: PropTypes.isRequired,
+        age: PropTypes.match(/^[1-9]([0-9])?$/).isRequired,
+        birthday: PropTypes.date('YYYY-MM-DD'),
+      },
+      success: {
+        msg: 'ok',  
+      },
+      error: {
+        msg: 'validate error',
+      },
+    },
+    '/bbb': {
+      validate: {
+        age: PropTypes.number,
+      },
+    },
+  },
+  handle: {
+    success({ json }) {
+      json({
+        msg: 'this is global success handle',
+      });
+    },
+    error: {
+      msg: 'this is global error handle',
+    },
+  },
+};
+```
