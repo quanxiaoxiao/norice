@@ -1,7 +1,7 @@
 ## Install
 
 ```bash
-$ npm install -g json-server
+$ npm install -g norice
 ```
 
 Requires Node 8+
