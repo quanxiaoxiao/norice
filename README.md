@@ -6,6 +6,11 @@ $ npm install -g norice
 
 Requires Node 8+
 
+## run
+norice or norice -p 3001
+
+default port is 3000
+
 ## Example
 
 Create a `norice.config.json` file
