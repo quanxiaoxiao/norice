@@ -1,6 +1,6 @@
 {
   "name": "norice",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "main": "bin/norice",
   "license": "MIT",
   "engines": {
@@ -38,13 +38,13 @@
   "dependencies": {
     "body-parser": "^1.17.2",
     "cors": "^2.8.4",
-    "express": "^4.15.3",
+    "express": "^4.15.4",
     "gaze": "^1.1.2",
     "lodash": "^4.17.4",
     "moment": "^2.18.1",
     "quan-prop-types": "^1.0.8",
     "request": "^2.81.0",
-    "webpack": "^3.4.1",
+    "webpack": "^3.5.3",
     "webpack-dev-middleware": "^1.12.0",
     "webpack-hot-middleware": "^2.18.2",
     "ws": "^3.1.0",
