@@ -83,8 +83,12 @@ module.exports = {
       })));
     },
     '/api/*': {
-        options: {
-            '^/api': '',
+        pathRewrite: {
+          '^/api': '/',
+        },
+        headers: {
+          host: 'www.baidu.com',
+          Cookie: 'JSESSIONID=2563BCFA3E6E93C04FECFD6D45E85482',
         },
         success: 'http://localhot:3001',
     } 
