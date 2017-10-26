@@ -2,10 +2,9 @@ const config = require('../config');
 
 config.init();
 
-module.exports = (argv) => {
+module.exports = ({ port }) => {
   const server = require('../server');
   const app = server();
-  const port = argv.port;
   app.listen(port, (error) => {
     if (error) {
       console.log(error);

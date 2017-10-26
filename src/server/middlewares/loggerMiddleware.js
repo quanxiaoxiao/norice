@@ -3,7 +3,13 @@ const _ = require('lodash');
 
 function loggerMiddleware(req, res, next) {
   const time = moment().format('HH:mm:ss');
-  const { hostname: host, query, method, body, path } = req;
+  const {
+    hostname: host,
+    query,
+    method,
+    body,
+    path,
+  } = req;
 
   let logger = `host:${host} method:${method} -- path:${path}`;
   if (!_.isEmpty(query)) {

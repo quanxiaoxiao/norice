@@ -49,7 +49,7 @@ exports.isValidateHandle = (path, handle) => {
     return true;
   }
   if (_.isPlainObject(handle)) {
-    const method = handle.method;
+    const { method } = handle;
     if (typeof method !== 'undefined' &&
       !['all', 'get', 'post', 'delete', 'patch'].includes(method)) {
       console.error(`path: ${path} can't support this method ${method}`);

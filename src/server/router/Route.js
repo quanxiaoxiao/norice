@@ -19,7 +19,7 @@ class Route {
   }
 
   setType() {
-    const response = this.response;
+    const { response } = this;
     if (_.isPlainObject(response) || Array.isArray(response)) {
       this.type = HANDLE_TYPE_JSON;
     } else if (_.isFunction(response)) {
@@ -32,14 +32,13 @@ class Route {
   }
 
   setResponse(req, res) {
-    const method = this.method;
-    const handle = this.handle;
+    const { method, handle } = this;
     let isSuccess = true;
     let status;
     if (_.isPlainObject(handle)) {
       const validate = handle.validate || {};
       this.options = handle.options || {};
-      status = handle.status;
+      status = handle.status; // eslint-disable-line
       if (method === 'get' || method === 'delete') {
         isSuccess = checkPropTypes(validate, req.query);
       } else {
@@ -70,7 +69,7 @@ class Route {
   }
 
   handleProxyResponse(req, res) {
-    let url = req.url;
+    let { url } = req;
     const options = this.options || {};
     if (_.isPlainObject(options.pathRewrite)) {
       Object.keys(options.pathRewrite).forEach((key) => {
