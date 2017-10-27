@@ -42,7 +42,7 @@
     "gaze": "^1.1.2",
     "lodash": "^4.17.4",
     "moment": "^2.19.1",
-    "quan-prop-types": "^1.0.8",
+    "quan-prop-types": "^1.0.9",
     "request": "^2.83.0",
     "webpack": "^3.8.1",
     "webpack-dev-middleware": "^1.12.0",

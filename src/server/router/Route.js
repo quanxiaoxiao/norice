@@ -43,9 +43,10 @@ class Route {
       } = handle;
       this.options = options;
       const params = (method === 'get' || method === 'delete') ? req.query : req.body;
-      const isSuccess = checkPropTypes(validate, params);
-      const code = isSuccess ? getSuccessStatusCode(status) : getErrorStatusCode(status);
-      this.response = isSuccess ? success : error;
+      const msg = checkPropTypes(validate, params);
+      const isValid = msg === '';
+      const code = isValid ? getSuccessStatusCode(status) : getErrorStatusCode(status);
+      this.response = isValid ? success : error;
       res.status(code);
     } else {
       this.response = handle;
