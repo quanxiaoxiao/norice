@@ -5,7 +5,12 @@ const config = require('../../config');
 function createRoutes(router, routes) {
   for (let i = 0; i < routes.length; i++) {
     const route = routes[i];
-    router[route.method](route.path, route.handleResponse.bind(route));
+    const {
+      path,
+      handleResponse,
+      method,
+    } = route;
+    router[method](path, handleResponse.bind(route));
   }
   return router;
 }

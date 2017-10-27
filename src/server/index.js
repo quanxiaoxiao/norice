@@ -20,10 +20,6 @@ module.exports = () => {
   if (middlewares) {
     app.use(middlewares);
   }
-
-  app.use(Router());
-
-
   const wss = require('./webSocket')(server);
 
   app.post('/socket', (req, res) => {
@@ -37,6 +33,8 @@ module.exports = () => {
       res.end();
     });
   });
+
+  app.use(Router());
 
   const webpackPath = getWebpack();
   if (webpackPath) {

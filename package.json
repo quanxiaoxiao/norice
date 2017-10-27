@@ -25,7 +25,7 @@
     "test": "ava test"
   },
   "devDependencies": {
-    "ava": "^0.22.0"
+    "ava": "^0.23.0"
   },
   "repository": {
     "type": "git",

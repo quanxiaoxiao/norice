@@ -33,30 +33,23 @@ class Route {
 
   setResponse(req, res) {
     const { method, handle } = this;
-    let isSuccess = true;
-    let status;
     if (_.isPlainObject(handle)) {
-      const validate = handle.validate || {};
-      this.options = handle.options || {};
-      status = handle.status; // eslint-disable-line
-      if (method === 'get' || method === 'delete') {
-        isSuccess = checkPropTypes(validate, req.query);
-      } else {
-        isSuccess = checkPropTypes(validate, req.body);
-      }
-      if (isSuccess) {
-        this.response = this.handle.success || config.getGlobalResponseHandle().success;
-      } else {
-        this.response = this.handle.error || config.getGlobalResponseHandle().error;
-      }
+      const {
+        validate = {},
+        options = {},
+        success = config.getGlobalResponseHandle().success,
+        error = config.getGlobalResponseHandle().error,
+        status,
+      } = handle;
+      this.options = options;
+      const params = (method === 'get' || method === 'delete') ? req.query : req.body;
+      const isSuccess = checkPropTypes(validate, params);
+      const code = isSuccess ? getSuccessStatusCode(status) : getErrorStatusCode(status);
+      this.response = isSuccess ? success : error;
+      res.status(code);
     } else {
-      this.response = this.handle;
-    }
-
-    if (isSuccess) {
-      res.status(getSuccessStatusCode(status));
-    } else {
-      res.status(getErrorStatusCode(status));
+      this.response = handle;
+      res.status(getSuccessStatusCode());
     }
   }
 
@@ -70,7 +63,7 @@ class Route {
 
   handleProxyResponse(req, res) {
     let { url } = req;
-    const options = this.options || {};
+    const { options = {} } = this;
     if (_.isPlainObject(options.pathRewrite)) {
       Object.keys(options.pathRewrite).forEach((key) => {
         const reg = new RegExp(key);
@@ -80,14 +73,13 @@ class Route {
       });
     }
     const method = req.method.toLowerCase();
-    const proxyOptions = Object.assign(
-      {},
-      _.omit(options, ['pathRewrite', 'headers']),
-      {
-        headers: Object.assign({}, req.headers, options.headers),
+    request[method](`${this.response}${url}`, {
+      ..._.omit(options, ['pathRewrite', 'headers']),
+      headers: {
+        ..._.omit(req.headers, ['host']),
+        ...options.headers,
       },
-    );
-    request[method](`${this.response}${url}`, proxyOptions)
+    })
       .on('error', (error) => {
         console.error(error);
         res.send(error.msg);
@@ -103,14 +95,14 @@ class Route {
         request[method](url, options, (error, _res, body) => {
           if (error) {
             res.send(error.msg);
-          } else {
-            try {
-              const data = JSON.parse(body);
-              res.json(dataConvertor(data));
-            } catch (e) {
-              console.error(e);
-              res.send(`path: ${this.path} parse json error`);
-            }
+            return;
+          }
+          try {
+            const data = JSON.parse(body);
+            res.json(dataConvertor(data));
+          } catch (e) {
+            console.error(e);
+            res.send(`path: ${this.path} parse json error`);
           }
         });
       },
