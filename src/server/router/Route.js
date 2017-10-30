@@ -4,6 +4,7 @@ const fs = require('fs');
 const request = require('request');
 const { checkPropTypes } = require('quan-prop-types');
 const { isHttpURL, getSuccessStatusCode, getErrorStatusCode } = require('./helper');
+const rpc = require('../../rpc');
 const config = require('../../config');
 
 const HANDLE_TYPE_JSON = Symbol('json');
@@ -48,6 +49,9 @@ class Route {
       const code = isValid ? getSuccessStatusCode(status) : getErrorStatusCode(status);
       this.response = isValid ? success : error;
       res.status(code);
+      if (!isValid) {
+        rpc.emit('validateError', msg);
+      }
     } else {
       this.response = handle;
       res.status(getSuccessStatusCode());
