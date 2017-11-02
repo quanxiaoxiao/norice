@@ -93,7 +93,8 @@ class Route {
   }
 
   handleFunctionResponse(req, res) {
-    this.response.call(req, {
+    this.response({
+      req,
       json: data => res.json(data),
       proxy: (url, dataConvertor = _.identity, options = {}) => {
         const method = req.method.toLowerCase();
