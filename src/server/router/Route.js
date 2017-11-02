@@ -93,35 +93,40 @@ class Route {
   }
 
   handleFunctionResponse(req, res) {
-    this.response({
-      req,
-      json: data => res.json(data),
-      proxy: (url, dataConvertor = _.identity, options = {}) => {
-        const method = req.method.toLowerCase();
-        request[method](url, options, (error, _res, body) => {
-          if (error) {
-            res.send(error.msg);
-            return;
-          }
+    try {
+      this.response({
+        req,
+        json: data => res.json(data),
+        proxy: (url, dataConvertor = _.identity, options = {}) => {
+          const method = req.method.toLowerCase();
+          request[method](url, options, (error, _res, body) => {
+            if (error) {
+              res.send(error.msg);
+              return;
+            }
+            try {
+              const data = JSON.parse(body);
+              res.json(dataConvertor(data));
+            } catch (e) {
+              console.error(e);
+              res.send(`path: ${this.path} parse json error`);
+            }
+          });
+        },
+        file: (path, dataConvertor = _.identity) => {
           try {
-            const data = JSON.parse(body);
+            const data = JSON.parse(fs.readFileSync(path));
             res.json(dataConvertor(data));
           } catch (e) {
             console.error(e);
             res.send(`path: ${this.path} parse json error`);
           }
-        });
-      },
-      file: (path, dataConvertor = _.identity) => {
-        try {
-          const data = JSON.parse(fs.readFileSync(path));
-          res.json(dataConvertor(data));
-        } catch (e) {
-          console.error(e);
-          res.send(`path: ${this.path} parse json error`);
-        }
-      },
-    });
+        },
+      });
+    } catch (e) {
+      res.status(500);
+      res.json({ error: e.message });
+    }
   }
 
   handleResponse(req, res, next) {
