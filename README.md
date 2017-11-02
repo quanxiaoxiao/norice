@@ -4,10 +4,12 @@
 $ npm install -g norice
 ```
 
-Requires Node 8+
+版本要求 Node v8.8.1+
 
 ## 启动
-norice or norice -p 3001
+norice 或者 norice -p 3001
+
+---
 
 在我目前工作环境下，服务端给个接口，我再根据接口所需要传入的参数和返回的数据格式，来调整前端业务逻辑，有时候碰到服务端跑不起来，手头上的工作就没法再继续了，所以我要有个mock server，首先想到的是[json-server](https://github.com/typicode/json-server)，但是我们服务端接口并不是标准的REST API，而且生成自己想要的数据还是太麻烦，也找不到别的更好的工具了，所以自己动手就写个吧。
 
