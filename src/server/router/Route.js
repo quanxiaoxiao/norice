@@ -2,6 +2,7 @@ const _ = require('lodash');
 const { resolve } = require('path');
 const fs = require('fs');
 const request = require('request');
+const qs = require('querystring');
 const { checkPropTypes } = require('quan-prop-types');
 const { isHttpURL, getSuccessStatusCode, getErrorStatusCode } = require('./helper');
 const rpc = require('../../rpc');
@@ -99,7 +100,8 @@ class Route {
         json: data => res.json(data),
         proxy: (url, dataConvertor = _.identity, options = {}) => {
           const method = req.method.toLowerCase();
-          request[method](url, options, (error, _res, body) => {
+          const proxyPath = _.isEmpty(req.query) ? url : `${url}?${qs.stringify(req.query)}`;
+          request[method](proxyPath, options, (error, _res, body) => {
             if (error) {
               res.send(error.msg);
               return;
