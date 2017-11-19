@@ -3,7 +3,6 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const http = require('http');
 const { getWebpack, getMiddlewares } = require('../config');
-const rpc = require('../rpc');
 
 const Router = require('./router');
 const loggerMiddleware = require('./middlewares/loggerMiddleware');
@@ -47,12 +46,6 @@ module.exports = () => {
   if (webpackPath) {
     app.use(webpackMiddleware(webpackPath));
   }
-
-  rpc.on('validateError', (msg) => {
-    wss.emit('broadcast', JSON.stringify({
-      validateError: msg,
-    }));
-  });
 
   return server;
 };

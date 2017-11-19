@@ -5,71 +5,12 @@ const request = require('request');
 const qs = require('querystring');
 const { checkPropTypes } = require('quan-prop-types');
 const { isHttpURL, getSuccessStatusCode, getErrorStatusCode } = require('./helper');
-const rpc = require('../../rpc');
 const config = require('../../config');
 
-const HANDLE_TYPE_JSON = Symbol('json');
-const HANDLE_TYPE_FILE = Symbol('file');
-const HANDLE_TYPE_PROXY = Symbol('proxy');
-const HANDLE_TYPE_FUNCTION = Symbol('function');
-
-class Route {
-  constructor(path, handle, method = 'get') {
-    this.path = path;
-    this.handle = handle;
-    this.method = method;
-  }
-
-  setType() {
-    const { response } = this;
-    if (_.isPlainObject(response) || Array.isArray(response)) {
-      this.type = HANDLE_TYPE_JSON;
-    } else if (_.isFunction(response)) {
-      this.type = HANDLE_TYPE_FUNCTION;
-    } else if (isHttpURL(response)) {
-      this.type = HANDLE_TYPE_PROXY;
-    } else {
-      this.type = HANDLE_TYPE_FILE;
-    }
-  }
-
-  setResponse(req, res) {
-    const { method, handle } = this;
-    if (_.isPlainObject(handle)) {
-      const {
-        validate = {},
-        options = {},
-        success = config.getGlobalResponseHandle().success,
-        error = config.getGlobalResponseHandle().error,
-        status,
-      } = handle;
-      this.options = options;
-      const params = (method === 'get' || method === 'delete') ? req.query : req.body;
-      const msg = checkPropTypes(validate, params);
-      const isValid = msg === '';
-      const code = isValid ? getSuccessStatusCode(status) : getErrorStatusCode(status);
-      this.response = isValid ? success : error;
-      res.status(code);
-      if (!isValid) {
-        rpc.emit('validateError', msg);
-      }
-    } else {
-      this.response = handle;
-      res.status(getSuccessStatusCode());
-    }
-  }
-
-  handleJsonResponse(req, res) {
-    res.json(this.response);
-  }
-
-  handleFileResponse(req, res) {
-    res.sendFile(resolve(process.cwd(), this.response));
-  }
-
-  handleProxyResponse(req, res) {
+function proxy(href, options = {}) {
+  return (req, res) => {
+    const method = req.method.toLowerCase();
     let { url } = req;
-    const { options = {} } = this;
     if (_.isPlainObject(options.pathRewrite)) {
       Object.keys(options.pathRewrite).forEach((key) => {
         const reg = new RegExp(key);
@@ -78,77 +19,144 @@ class Route {
         }
       });
     }
-    const method = req.method.toLowerCase();
-    request[method](`${this.response}${url}`, {
+    request[method](`${href}${url}`, {
       ..._.omit(options, ['pathRewrite', 'headers']),
       headers: {
         ..._.omit(req.headers, ['host']),
-        ...options.headers,
+        ...(options.headers || {}),
       },
     })
       .on('error', (error) => {
-        console.error(error);
-        res.send(error.msg);
+        console.error(error.message);
+        res.status(500);
+        res.json({
+          error: error.message,
+        });
       })
       .pipe(res);
-  }
+  };
+}
 
-  handleFunctionResponse(req, res) {
-    try {
-      this.response({
-        req,
-        json: data => res.json(data),
-        proxy: (url, dataConvertor = _.identity, options = {}) => {
-          const method = req.method.toLowerCase();
-          const proxyPath = _.isEmpty(req.query) ? url : `${url}?${qs.stringify(req.query)}`;
-          request[method](proxyPath, options, (error, _res, body) => {
-            if (error) {
-              res.send(error.msg);
-              return;
-            }
-            try {
-              const data = JSON.parse(body);
-              res.json(dataConvertor(data));
-            } catch (e) {
-              console.error(e);
-              res.send(`path: ${this.path} parse json error`);
-            }
-          });
-        },
-        file: (path, dataConvertor = _.identity) => {
+function file(path) {
+  return (req, res) => {
+    const filePath = resolve(process.cwd(), path);
+    fs.accessSync(filePath);
+    res.sendFile(filePath);
+  };
+}
+
+function json(data) {
+  return (req, res) => {
+    res.json(data);
+  };
+}
+
+function fanction(handle) {
+  return (req, res) => {
+    handle({
+      req,
+      json: data => res.json(data),
+      proxy: (url, dataConvertor = _.identity, options = {}) => {
+        const method = req.method.toLowerCase();
+        const proxyUrl = _.isEmpty(req.query) ? url : `${url}?${qs.stringify(req.query)}`;
+        request[method](proxyUrl, options, (error, _res, body) => {
+          if (error) {
+            res.status(500);
+            res.json({
+              error: error.message,
+            });
+            return;
+          }
           try {
-            const data = JSON.parse(fs.readFileSync(path));
+            const data = JSON.parse(body);
             res.json(dataConvertor(data));
           } catch (e) {
-            console.error(e);
-            res.send(`path: ${this.path} parse json error`);
+            res.status(500);
+            res.json({
+              error: e.message,
+            });
           }
-        },
-      });
-    } catch (e) {
-      res.status(500);
-      res.json({ error: e.message });
+        });
+      },
+      file: (path, dataConvertor = _.identity) => {
+        const data = JSON.parse(fs.readFileSync(path));
+        res.json(dataConvertor(data));
+      },
+    });
+  };
+}
+
+
+class Route {
+  constructor(path, handle, method = 'get') {
+    this.path = path;
+    this.method = method;
+    if (_.isPlainObject(handle)) {
+      if (handle.validate) {
+        this.validate = handle.validate;
+      }
+      this.options = handle.options || {};
+      this.makeResponse(handle.success || config.getGlobalResponseHandle().success);
+    } else {
+      this.makeResponse(handle);
+    }
+    this.successStatusCode = getSuccessStatusCode(handle.status);
+    this.errorStatusCode = getErrorStatusCode(handle.status);
+  }
+
+  makeResponse(handle) {
+    const { path } = this;
+    if (_.isString(handle)) {
+      if (isHttpURL(handle)) {
+        this.response = proxy(handle, this.options);
+      } else {
+        this.response = file(handle);
+      }
+    } else if (_.isFunction(handle)) {
+      this.response = fanction(handle);
+    } else if (_.isPlainObject(handle) || _.isArray(handle)) {
+      this.response = json(handle);
+    } else {
+      this.response = (req, res) => {
+        const msg = `path: ${path}, can't handle this type ${typeof handle}`;
+        console.error(msg);
+        res.status(500);
+        res.json({
+          error: msg,
+        });
+      };
     }
   }
 
-  handleResponse(req, res, next) {
-    this.setResponse(req, res);
-    this.setType();
-    const map = {
-      [HANDLE_TYPE_JSON]: 'handleJsonResponse',
-      [HANDLE_TYPE_FILE]: 'handleFileResponse',
-      [HANDLE_TYPE_PROXY]: 'handleProxyResponse',
-      [HANDLE_TYPE_FUNCTION]: 'handleFunctionResponse',
-    };
-    const handleType = map[this.type];
-    this[handleType](req, res, next);
+  handleResponse(req, res) {
+    try {
+      const {
+        validate,
+        method,
+        response,
+      } = this;
+      if (validate) {
+        const params = (method === 'get' || method === 'delete') ? req.query : req.body;
+        const msg = checkPropTypes(validate, params);
+        const isValid = msg === '';
+        if (!isValid) {
+          res.status(this.errorStatusCode);
+          res.json({ error: msg });
+        } else {
+          res.status(this.successStatusCode);
+          response(req, res);
+        }
+      } else {
+        res.status(this.successStatusCode);
+        response(req, res);
+      }
+    } catch (e) {
+      res.status(500);
+      res.json({
+        error: e.message,
+      });
+    }
   }
 }
 
 module.exports = Route;
-
-
-Route.HANDLE_TYPE_JSON = HANDLE_TYPE_JSON;
-Route.HANDLE_TYPE_FILE = HANDLE_TYPE_FILE;
-Route.HANDLE_TYPE_PROXY = HANDLE_TYPE_PROXY;
-Route.HANDLE_TYPE_FUNCTION = HANDLE_TYPE_FUNCTION;
