@@ -19,7 +19,13 @@ module.exports = () => {
   app.use(loggerMiddleware);
   const middlewares = getMiddlewares();
   if (middlewares) {
-    app.use(middlewares);
+    middlewares.forEach((middleware) => {
+      if (Array.isArray(middleware)) {
+        app.use(...middleware);
+      } else {
+        app.use(middleware);
+      }
+    });
   }
   const wss = require('./webSocket')(server);
 
