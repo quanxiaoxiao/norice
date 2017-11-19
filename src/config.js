@@ -27,6 +27,7 @@ function exec() {
   try {
     cfg = require(path); // eslint-disable-line import/no-dynamic-require
   } catch (e) {
+    console.error('parse norice.config.js error', e.message);
     if (prevModule) {
       require.cache[path] = prevModule;
       if (index !== -1) {
