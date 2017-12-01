@@ -9,8 +9,10 @@ function webpackMiddleware(webpackFilePath) {
   const result = [];
 
   result.push(webpackDevMiddleware(compiler, {
-    noInfo: true,
     publicPath: webpackConfig.output.publickPath || '/',
+    stats: {
+      colors: true,
+    },
   }));
 
   result.push(webpackHotMiddleware(compiler));
