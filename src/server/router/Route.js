@@ -22,7 +22,7 @@ function proxy(href, options = {}) {
     request[method](`${href}${url}`, {
       ..._.omit(options, ['pathRewrite', 'headers']),
       headers: {
-        ..._.omit(req.headers, ['host']),
+        ..._.omit(req.headers, ['host', 'Host', 'cookie', 'Cookie', 'referer', 'Referer']),
         ...(options.headers || {}),
       },
     })
