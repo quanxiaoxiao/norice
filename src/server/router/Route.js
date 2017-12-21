@@ -19,15 +19,19 @@ function proxy(href, options = {}) {
         }
       });
     }
+
     request[method](`${href}${url}`, {
       ..._.omit(options, ['pathRewrite', 'headers']),
+      ...!_.isUndefined(req.headers['content-length']) ? {
+        body: req.headers['content-type'] === 'applicaiton/json' ?
+          JSON.stringify(req.body) : qs.stringify(req.body),
+      } : {},
       headers: {
-        ..._.omit(req.headers, ['host', 'Host', 'cookie', 'Cookie', 'referer', 'Referer']),
+        ..._.omit(req.headers, ['host', 'cookie', 'referer']),
         ...(options.headers || {}),
       },
     })
       .on('error', (error) => {
-        console.error(error.message);
         res.status(500);
         res.json({
           error: error.message,
@@ -132,11 +136,10 @@ class Route {
     try {
       const {
         validate,
-        method,
         response,
       } = this;
       if (validate) {
-        const params = (method === 'get' || method === 'delete') ? req.query : req.body;
+        const params = _.isUndefined(req.headers['content-length']) ? req.query : req.body;
         const msg = checkPropTypes(validate, params);
         const isValid = msg === '';
         if (!isValid) {
