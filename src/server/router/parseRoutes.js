@@ -21,12 +21,7 @@ module.exports = function parseRoutes(paths) {
       continue;
     }
     const handle = paths[key];
-    if (!isCompoundPath(handle)) {
-      if (!isValidateHandle(key, handle)) {
-        continue;
-      }
-      routes.push(new Route(key, handle, handle.method));
-    } else {
+    if (isCompoundPath(handle)) {
       const methods = Object.keys(handle);
       for (let j = 0; j < methods.length; j++) {
         const method = methods[j];
@@ -34,6 +29,8 @@ module.exports = function parseRoutes(paths) {
           routes.push(new Route(key, handle[method], method));
         }
       }
+    } else if (isValidateHandle(key, handle)) {
+      routes.push(new Route(key, handle, handle.method));
     }
   }
   return routes;

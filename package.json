@@ -1,6 +1,6 @@
 {
   "name": "norice",
-  "version": "0.0.28",
+  "version": "0.0.29",
   "main": "bin/norice",
   "license": "MIT",
   "engines": {
