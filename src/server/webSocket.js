@@ -4,6 +4,8 @@ const config = require('../config');
 module.exports = function webSocket(server) {
   const wss = new WebSocket.Server({ server });
 
+  wss.on('error', () => {});
+
   wss.on('connection', (ws) => {
     ws.on('message', (data) => {
       console.log('message', data);
