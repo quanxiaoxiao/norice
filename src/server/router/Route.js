@@ -23,7 +23,7 @@ function proxy(href, options = {}) {
     request[method](`${href}${url}`, {
       ..._.omit(options, ['pathRewrite', 'headers']),
       ...!_.isUndefined(req.headers['content-length']) ? {
-        body: req.headers['content-type'] === 'applicaiton/json' ?
+        body: req.headers['content-type'] === 'application/json' ?
           JSON.stringify(req.body) : qs.stringify(req.body),
       } : {},
       headers: {

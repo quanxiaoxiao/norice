@@ -34,7 +34,9 @@ module.exports = () => {
       chucks.push(chuck);
     });
     req.on('end', () => {
-      wss.emit('broadcast', Buffer.concat(chucks).toString('utf-8'));
+      const msg = Buffer.concat(chucks).toString('utf-8');
+      console.log('socket broadcast', msg);
+      wss.emit('broadcast', msg);
       res.status(204);
       res.end();
     });
