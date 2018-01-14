@@ -49,13 +49,8 @@ module.exports = () => {
     app.use(webpackMiddleware(webpackPath));
   }
 
-  app.on('error', (error) => {
-    console.error('server error', error.message);
-  });
-
-  process.on('uncaughtException', (err) => {
-    console.log('process.on handler');
-    console.log(err);
+  server.on('error', (error) => {
+    console.error('server error', error);
   });
 
   return server;

@@ -14,6 +14,8 @@ module.exports = function webSocket(server) {
     ws.on('close', () => {
       console.log('socket close');
     });
+
+    ws.on('error', () => {});
   });
 
   wss.on('broadcast', (msg) => {
@@ -41,9 +43,7 @@ module.exports = function webSocket(server) {
       console.log(`socket host: ${proxyHost} close`);
     });
 
-    ws.on('error', (error) => {
-      console.log(`socket host: ${proxyHost} error ${error.message}`);
-    });
+    ws.on('error', () => {});
 
     ws.on('message', (message) => {
       console.log(`receive: ${message}`);
