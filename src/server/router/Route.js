@@ -56,9 +56,11 @@ function json(data) {
 }
 
 function fanction(handle) {
-  return (req, res) => {
+  return (req, res, next) => {
     handle({
       req,
+      res,
+      next,
       json: data => res.json(data),
       proxy: (url, dataConvertor = _.identity, options = {}) => {
         const method = req.method.toLowerCase();
