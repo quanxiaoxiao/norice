@@ -1,6 +1,6 @@
 {
   "name": "norice",
-  "version": "0.0.31",
+  "version": "0.0.32",
   "main": "bin/norice",
   "license": "MIT",
   "engines": {
@@ -44,6 +44,7 @@
     "moment": "^2.20.1",
     "quan-prop-types": "^1.0.9",
     "request": "^2.83.0",
+    "shelljs": "^0.8.1",
     "webpack": "^3.10.0",
     "webpack-dev-middleware": "^2.0.4",
     "webpack-hot-middleware": "^2.21.0",

@@ -7,6 +7,12 @@ const {
   isValidateHandle,
 } = require('./helper');
 
+const {
+  createFile,
+  sendFile,
+  removeFile,
+} = require('../../file');
+
 module.exports = function parseRoutes(paths) {
   if (!_.isPlainObject(paths)) {
     console.error('`paths` must plain object');
@@ -30,7 +36,13 @@ module.exports = function parseRoutes(paths) {
         }
       }
     } else if (isValidateHandle(key, handle)) {
-      routes.push(new Route(key, handle, handle.method));
+      if (handle.dir) {
+        routes.push(new Route(`${key}/:id`, sendFile(handle), 'get'));
+        routes.push(new Route(key, createFile(handle), 'post'));
+        routes.push(new Route(`${key}/:id`, removeFile(handle), 'delete'));
+      } else {
+        routes.push(new Route(key, handle, handle.method));
+      }
     }
   }
   return routes;
