@@ -12,7 +12,6 @@ module.exports = config => ({ req, res }) => {
     maxSize = MAX_FILE_SIZE,
     dir,
   } = config;
-  console.log(req.headers['content-type'], req.headers['content-length']);
   const fileSize = req.headers['content-length'];
   if (fileSize > maxSize) {
     res.status(413);
