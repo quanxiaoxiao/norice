@@ -85,8 +85,13 @@ function fanction(handle) {
         });
       },
       file: (path, dataConvertor = _.identity) => {
-        const data = JSON.parse(fs.readFileSync(path));
-        res.json(dataConvertor(data));
+        if (typeof dataConvertor !== 'function') {
+          res.set('Content-Type', dataConvertor);
+          res.sendFile(path);
+        } else {
+          const data = JSON.parse(fs.readFileSync(path));
+          res.json(dataConvertor(data));
+        }
       },
     });
   };
