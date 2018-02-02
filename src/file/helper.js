@@ -15,10 +15,18 @@ const swapFile = (tempPath, newPath) => {
   }
 };
 
+const getFilePath = (dir, req) => {
+  if (typeof dir === 'function') {
+    return dir(req);
+  }
+  return dir;
+};
+
 const cryptoUsingMD5 = data =>
   crypto.createHash('md5').update(data).digest('hex');
 
 module.exports = {
   swapFile,
   cryptoUsingMD5,
+  getFilePath,
 };

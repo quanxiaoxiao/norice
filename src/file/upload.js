@@ -3,7 +3,7 @@ const _ = require('lodash');
 const path = require('path');
 const shelljs = require('shelljs');
 const calcEtag = require('./etag');
-const { swapFile } = require('./helper');
+const { swapFile, getFilePath } = require('./helper');
 
 const MAX_FILE_SIZE = 1024 * 1024 * 10;
 
@@ -21,11 +21,13 @@ module.exports = config => ({ req, res }) => {
     return;
   }
 
-  if (!shelljs.test('-d', dir)) {
-    shelljs.mkdir('-p', dir);
+  const filePath = getFilePath(dir, req);
+
+  if (!shelljs.test('-d', filePath)) {
+    shelljs.mkdir('-p', filePath);
   }
 
-  const tempFilePath = path.resolve(config.dir, `temp__${Date.now()}_${_.uniqueId()}`);
+  const tempFilePath = path.resolve(filePath, `temp__${Date.now()}_${_.uniqueId()}`);
   const write = fs.createWriteStream(tempFilePath);
   const chunks = [];
   let size = 0;
@@ -39,7 +41,7 @@ module.exports = config => ({ req, res }) => {
   req.on('end', () => {
     write.end();
     const etag = calcEtag(Buffer.concat(chunks, size));
-    setTimeout(() => swapFile(tempFilePath, path.resolve(config.dir, etag)), 10);
+    setTimeout(() => swapFile(tempFilePath, path.resolve(filePath, etag)), 10);
     res.json({
       etag,
     });
