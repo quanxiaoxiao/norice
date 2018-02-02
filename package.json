@@ -25,7 +25,7 @@
     "test": "ava test"
   },
   "devDependencies": {
-    "ava": "^0.24.0"
+    "ava": "^0.25.0"
   },
   "repository": {
     "type": "git",
@@ -49,6 +49,6 @@
     "webpack-dev-middleware": "^2.0.4",
     "webpack-hot-middleware": "^2.21.0",
     "ws": "^4.0.0",
-    "yargs": "^10.1.2"
+    "yargs": "^11.0.0"
   }
 }
