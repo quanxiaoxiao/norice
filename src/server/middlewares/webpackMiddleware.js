@@ -24,7 +24,7 @@ function webpackMiddleware(webpackFilePath) {
         next(err);
         return;
       }
-      res.set('Content-type', 'text/html');
+      res.set('Content-Type', 'text/html');
       res.end(indexHtmlTemplate);
     });
   });

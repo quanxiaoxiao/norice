@@ -7,8 +7,8 @@ module.exports = config => ({ req, res }) => {
   if (shelljs.test('-f', filePath)) {
     shelljs.rm('-f', filePath);
   }
-  if (config.done) {
-    config.done({
+  if (config.success) {
+    config.success({
       etag: filePath,
       query: req.query,
       type: 'remove',

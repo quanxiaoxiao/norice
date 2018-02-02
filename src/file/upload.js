@@ -3,7 +3,7 @@ const _ = require('lodash');
 const path = require('path');
 const shelljs = require('shelljs');
 const calcEtag = require('./etag');
-const { swapFile } = require('./helpler');
+const { swapFile } = require('./helper');
 
 const MAX_FILE_SIZE = 1024 * 1024 * 10;
 
@@ -43,11 +43,11 @@ module.exports = config => ({ req, res }) => {
     res.json({
       etag,
     });
-    if (config.done) {
-      config.done({
+    if (config.success) {
+      config.success({
         etag,
         query: req.query,
-        type: 'create',
+        type: 'upload',
       });
     }
   });

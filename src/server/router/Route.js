@@ -103,9 +103,7 @@ class Route {
     this.path = path;
     this.method = method;
     if (_.isPlainObject(handle)) {
-      if (handle.validate) {
-        this.validate = handle.validate;
-      }
+      this.validate = handle.validate;
       this.options = handle.options || {};
       this.makeResponse(handle.success || config.getGlobalResponseHandle().success);
     } else {

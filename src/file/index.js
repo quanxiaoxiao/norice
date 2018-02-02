@@ -1,9 +1,9 @@
-const create = require('./create');
+const upload = require('./upload');
 const remove = require('./remove');
-const send = require('./send');
+const download = require('./download');
 
 module.exports = {
-  createFile: create,
+  uploadFile: upload,
   removeFile: remove,
-  sendFile: send,
+  downloadFile: download,
 };

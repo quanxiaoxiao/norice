@@ -8,8 +8,8 @@ const {
 } = require('./helper');
 
 const {
-  createFile,
-  sendFile,
+  uploadFile,
+  downloadFile,
   removeFile,
 } = require('../../file');
 
@@ -37,8 +37,8 @@ module.exports = function parseRoutes(paths) {
       }
     } else if (isValidateHandle(key, handle)) {
       if (handle.dir) {
-        routes.push(new Route(`${key}/:id`, sendFile(handle), 'get'));
-        routes.push(new Route(key, createFile(handle), 'post'));
+        routes.push(new Route(`${key}/:id`, downloadFile(handle), 'get'));
+        routes.push(new Route(key, uploadFile(handle), 'post'));
         routes.push(new Route(`${key}/:id`, removeFile(handle), 'delete'));
       } else {
         routes.push(new Route(key, handle, handle.method));

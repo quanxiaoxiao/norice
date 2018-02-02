@@ -15,11 +15,11 @@ module.exports = config => ({ req, res }) => {
   } else {
     res.download(filePath);
   }
-  if (config.done) {
-    config.done({
+  if (config.success) {
+    config.success({
       etag: filePath,
       query: req.query,
-      type: 'send',
+      type: 'download',
     });
   }
 };
