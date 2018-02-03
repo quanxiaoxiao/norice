@@ -1,6 +1,6 @@
 {
   "name": "norice",
-  "version": "0.0.34",
+  "version": "0.0.35",
   "main": "bin/norice",
   "license": "MIT",
   "engines": {
@@ -37,6 +37,7 @@
   "homepage": "https://github.com/quanxiaoxiao/norice",
   "dependencies": {
     "body-parser": "^1.18.2",
+    "content-type": "^1.0.4",
     "cors": "^2.8.4",
     "express": "^4.16.2",
     "gaze": "^1.1.2",
@@ -45,6 +46,7 @@
     "quan-prop-types": "^1.0.9",
     "request": "^2.83.0",
     "shelljs": "^0.8.1",
+    "through2": "^2.0.3",
     "webpack": "^3.10.0",
     "webpack-dev-middleware": "^2.0.4",
     "webpack-hot-middleware": "^2.21.0",

@@ -1,4 +1,5 @@
 const _ = require('lodash');
+const qs = require('querystring');
 
 const METHODS = ['get', 'post', 'delete', 'put', 'patch'];
 const { isSubset } = require('../../utils/set');
@@ -59,4 +60,47 @@ exports.isValidateHandle = (path, handle) => {
   }
   console.error(`path: ${path} is invalidate handle`);
   return false;
+};
+
+const calNameByParams = (obj) => {
+  if (_.isEmpty(obj)) {
+    return '';
+  }
+  return qs.stringify(Object.keys(obj)
+    .sort((a, b) => {
+      const aName = a.toLowerCase();
+      const bName = b.toLowerCase();
+      if (aName < bName) {
+        return -1;
+      }
+      if (aName > bName) {
+        return 1;
+      }
+      return 0;
+    })
+    .reduce((acc, key) => ({
+      ...acc,
+      [key]: obj[key],
+    }), {}));
+};
+
+const getParamsByReq = (req) => {
+  const method = req.method.toLowerCase();
+  switch (method) {
+    case 'get':
+    case 'delete':
+      return req.query;
+    case 'post':
+    case 'put':
+    case 'patch':
+      return req.body;
+    default: return {};
+  }
+};
+
+exports.getParamsByReq = getParamsByReq;
+
+exports.getRecordNameByReq = (req) => {
+  const method = req.method.toLowerCase();
+  return `${method.toLowerCase()}_${calNameByParams(getParamsByReq(req))}`;
 };
