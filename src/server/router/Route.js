@@ -105,11 +105,22 @@ function fanction(handle) {
       json: data => res.json(data),
       proxy: (url, proxyOptions = {}, convert) => {
         const method = req.method.toLowerCase();
+        const { search } = urlParse(request.url);
         const requestOptions = {
           ...proxyOptions,
-          url: (_.isEmpty(req.query) && url) || `${url}?${qs.stringify(req.query)}`,
+          url: `${url}${search || ''}`,
           method,
         };
+
+        if (method === 'post' || method === 'patch' || method === 'put') {
+          const { type } = contentType.parse(req);
+          if (type === 'application/json') {
+            requestOptions.body = JSON.stringify(req.body);
+          } else if (type === 'application/x-www-form-urlencoded') {
+            requestOptions.body = qs.stringify(req.body);
+          }
+        }
+
         const requestStream = request(requestOptions)
           .on('error', (error) => {
             res.status(500);
@@ -118,7 +129,7 @@ function fanction(handle) {
         if (convert) {
           requestStream.pipe(concatStream((chunks) => {
             const data = convert(chunks);
-            if (_.isPlainObject(data)) {
+            if (_.isPlainObject(data) || _.isArray(data)) {
               res.json(data);
             } else {
               res.end(data);
@@ -134,7 +145,7 @@ function fanction(handle) {
         if (convert) {
           readStream.pipe(concatStream((chunks) => {
             const data = convert(chunks);
-            if (_.isPlainObject(data)) {
+            if (_.isPlainObject(data) || _.isArray(data)) {
               res.json(data);
             } else {
               res.end(data);
