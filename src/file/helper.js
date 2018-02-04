@@ -1,5 +1,6 @@
 const fs = require('fs');
 const crypto = require('crypto');
+const path = require('path');
 
 const swapFile = (tempPath, newPath) => {
   try {
@@ -17,9 +18,9 @@ const swapFile = (tempPath, newPath) => {
 
 const getFilePath = (dir, req) => {
   if (typeof dir === 'function') {
-    return dir(req);
+    return path.resolve(process.cwd(), dir(req));
   }
-  return dir;
+  return path.resolve(process.cwd(), dir);
 };
 
 const cryptoUsingMD5 = data =>

@@ -27,7 +27,7 @@ module.exports = config => ({ req, res }) => {
     shelljs.mkdir('-p', filePath);
   }
 
-  const tempFilePath = path.resolve(filePath, `temp__${Date.now()}_${_.uniqueId()}`);
+  const tempFilePath = path.resolve(process.cwd(), filePath, `temp__${Date.now()}_${_.uniqueId()}`);
   const write = fs.createWriteStream(tempFilePath);
   const chunks = [];
   let size = 0;
@@ -41,7 +41,7 @@ module.exports = config => ({ req, res }) => {
   req.on('end', () => {
     write.end();
     const etag = calcEtag(Buffer.concat(chunks, size));
-    setTimeout(() => swapFile(tempFilePath, path.resolve(filePath, etag)), 10);
+    setTimeout(() => swapFile(tempFilePath, path.resolve(process.cwd(), filePath, etag)), 10);
     res.json({
       etag,
     });

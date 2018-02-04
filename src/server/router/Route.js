@@ -3,6 +3,7 @@ const { resolve } = require('path');
 const through = require('through2');
 const shelljs = require('shelljs');
 const fs = require('fs');
+const concatStream = require('concat-stream');
 const { parse: urlParse } = require('url');
 const request = require('request');
 const qs = require('querystring');
@@ -17,7 +18,7 @@ const {
 } = require('./helper');
 const config = require('../../config');
 
-function proxy(host, options = {}) {
+function proxy(host, proxyOptions = {}, record) {
   return (req, res) => {
     const chunks = [];
     const method = req.method.toLowerCase();
@@ -28,9 +29,8 @@ function proxy(host, options = {}) {
     const {
       pathRewrite = {},
       headers = {},
-      record,
       ...other
-    } = options;
+    } = proxyOptions;
     const path = Object.keys(pathRewrite).reduce((acc, key) => {
       const reg = new RegExp(key);
       return reg.test(acc) ? acc.replace(reg, pathRewrite[key]) : acc;
@@ -70,7 +70,7 @@ function proxy(host, options = {}) {
       .pipe(res)
       .on('finish', () => {
         if (record && !_.isEmpty(chunks)) {
-          const recordFilePath = resolve(process.cwd(), options.record, path.substring(1));
+          const recordFilePath = resolve(process.cwd(), record, path.substring(1));
           if (!shelljs.test('-d', recordFilePath)) {
             shelljs.mkdir('-p', recordFilePath);
           }
@@ -80,13 +80,11 @@ function proxy(host, options = {}) {
   };
 }
 
-function file(filePath, options = {}) {
+function file(filePath, record) {
   return (req, res) => {
-    const { record } = options;
     if (record) {
       const { path } = req;
       const recordFilePath = resolve(process.cwd(), filePath, record, path.substring(1));
-      res.set('Content-Type', 'application/json');
       res.sendFile(resolve(recordFilePath, getRecordNameByReq(req)));
     } else {
       res.sendFile(resolve(process.cwd(), filePath));
@@ -105,41 +103,45 @@ function fanction(handle) {
       res,
       next,
       json: data => res.json(data),
-      proxy: (url, dataConvertor = _.identity, options = {}) => {
+      proxy: (url, proxyOptions = {}, convert) => {
         const method = req.method.toLowerCase();
         const requestOptions = {
-          ...options,
+          ...proxyOptions,
           url: (_.isEmpty(req.query) && url) || `${url}?${qs.stringify(req.query)}`,
           method,
         };
-
-        request(requestOptions, (error, _res, body) => {
-          if (error) {
+        const requestStream = request(requestOptions)
+          .on('error', (error) => {
             res.status(500);
-            res.json({
-              error: error.message,
-            });
-            return;
-          }
-          try {
-            const data = JSON.parse(body);
-            res.json(dataConvertor(data));
-          } catch (e) {
-            res.status(500);
-            res.json({
-              error: e.message,
-            });
-          }
-        });
-      },
-      file: (path, dataConvertor = _.identity) => {
-        const filePath = resolve(process.cwd(), path);
-        if (typeof dataConvertor !== 'function') {
-          res.set('Content-Type', dataConvertor);
-          res.sendFile(filePath);
+            res.json({ error: error.message });
+          });
+        if (convert) {
+          requestStream.pipe(concatStream((chunks) => {
+            const data = convert(chunks);
+            if (_.isPlainObject(data)) {
+              res.json(data);
+            } else {
+              res.end(data);
+            }
+          }));
         } else {
-          const data = JSON.parse(fs.readFileSync(filePath));
-          res.json(dataConvertor(data));
+          requestStream.pipe(res);
+        }
+      },
+      file: (path, convert) => {
+        const filePath = resolve(process.cwd(), path);
+        const readStream = fs.createReadStream(filePath);
+        if (convert) {
+          readStream.pipe(concatStream((chunks) => {
+            const data = convert(chunks);
+            if (_.isPlainObject(data)) {
+              res.json(data);
+            } else {
+              res.end(data);
+            }
+          }));
+        } else {
+          readStream.pipe(res);
         }
       },
     });
@@ -152,10 +154,19 @@ class Route {
     this.path = path;
     this.method = method;
     if (_.isPlainObject(handle)) {
-      this.validate = handle.validate;
-      this.options = handle.options;
-      this.makeResponse(typeof handle.success === 'undefined' ?
-        config.getGlobalResponseHandle().success : handle.success);
+      const {
+        validate,
+        record,
+        headers,
+        success,
+        options,
+      } = handle;
+      this.validate = validate;
+      this.record = record;
+      this.headers = headers;
+      this.options = options;
+      this.makeResponse(success == null ?
+        config.getGlobalResponseHandle().success : success);
     } else {
       this.makeResponse(handle);
     }
@@ -163,13 +174,21 @@ class Route {
     this.errorStatusCode = getErrorStatusCode(handle.status);
   }
 
+  setHeaders(res) {
+    const { headers = {} } = this;
+    Object.keys(headers)
+      .forEach((key) => {
+        res.set(key, headers[key]);
+      });
+  }
+
   makeResponse(handle) {
-    const { path } = this;
+    const { path, options, record } = this;
     if (_.isString(handle)) {
       if (isHttpURL(handle)) {
-        this.response = proxy(handle, this.options);
+        this.response = proxy(handle, options, record);
       } else {
-        this.response = file(handle, this.options);
+        this.response = file(handle, record);
       }
     } else if (_.isFunction(handle)) {
       this.response = fanction(handle);
@@ -201,10 +220,12 @@ class Route {
           res.status(this.errorStatusCode);
           res.json({ error: msg });
         } else {
+          this.setHeaders(res);
           res.status(this.successStatusCode);
           response(req, res);
         }
       } else {
+        this.setHeaders(res);
         res.status(this.successStatusCode);
         response(req, res);
       }
