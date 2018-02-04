@@ -1,5 +1,7 @@
 const _ = require('lodash');
 const qs = require('querystring');
+const contentType = require('content-type');
+const getRawBody = require('raw-body');
 
 const METHODS = ['get', 'post', 'delete', 'put', 'patch'];
 const { isSubset } = require('../../utils/set');
@@ -63,6 +65,9 @@ exports.isValidateHandle = (path, handle) => {
 };
 
 const calNameByParams = (obj) => {
+  if (!_.isPlainObject(obj)) {
+    throw new Error(typeof obj);
+  }
   if (_.isEmpty(obj)) {
     return '';
   }
@@ -98,7 +103,20 @@ const getParamsByReq = (req) => {
   }
 };
 
+const getRequestRawBody = (req) => {
+  const { type } = contentType.parse(req);
+  if (type === 'application/json') {
+    return Promise.resolve(JSON.stringify(req.body));
+  } else if (type === 'application/x-www-form-urlencoded') {
+    return Promise.resolve(qs.stringify(req.body));
+  }
+  return getRawBody(req);
+};
+
+exports.getRequestRawBody = getRequestRawBody;
+
 exports.getParamsByReq = getParamsByReq;
+
 
 exports.getRecordNameByReq = (req) => {
   const method = req.method.toLowerCase();

@@ -6,8 +6,6 @@ const fs = require('fs');
 const concatStream = require('concat-stream');
 const { parse: urlParse } = require('url');
 const request = require('request');
-const qs = require('querystring');
-const contentType = require('content-type');
 const { checkPropTypes } = require('quan-prop-types');
 const {
   isHttpURL,
@@ -15,11 +13,12 @@ const {
   getErrorStatusCode,
   getParamsByReq,
   getRecordNameByReq,
+  getRequestRawBody,
 } = require('./helper');
 const config = require('../../config');
 
 function proxy(host, proxyOptions = {}, record) {
-  return (req, res) => {
+  return async (req, res) => {
     const chunks = [];
     const method = req.method.toLowerCase();
     const {
@@ -47,19 +46,11 @@ function proxy(host, proxyOptions = {}, record) {
     };
 
     if (method === 'post' || method === 'patch' || method === 'put') {
-      const { type } = contentType.parse(req);
-      if (type === 'application/json') {
-        requestOptions.body = JSON.stringify(req.body);
-      } else if (type === 'application/x-www-form-urlencoded') {
-        requestOptions.body = qs.stringify(req.body);
-      }
+      const body = await getRequestRawBody(req);
+      requestOptions.body = body;
     }
 
     request(requestOptions)
-      .on('error', (error) => {
-        res.status(500);
-        res.json({ error: error.message });
-      })
       .pipe(through(function _through(chunk, encode, cb) {
         if (record) {
           chunks.push(chunk);
@@ -68,6 +59,10 @@ function proxy(host, proxyOptions = {}, record) {
         cb();
       }))
       .pipe(res)
+      .on('error', (error) => {
+        res.status(500);
+        res.json({ error: error.message });
+      })
       .on('finish', () => {
         if (record && !_.isEmpty(chunks)) {
           const recordFilePath = resolve(process.cwd(), record, path.substring(1));
@@ -82,13 +77,15 @@ function proxy(host, proxyOptions = {}, record) {
 
 function file(filePath, record) {
   return (req, res) => {
+    let stream;
     if (record) {
       const { path } = req;
       const recordFilePath = resolve(process.cwd(), filePath, record, path.substring(1));
-      res.sendFile(resolve(recordFilePath, getRecordNameByReq(req)));
+      stream = fs.createReadStream(resolve(recordFilePath, getRecordNameByReq(req)));
     } else {
-      res.sendFile(resolve(process.cwd(), filePath));
+      stream = fs.createReadStream(resolve(process.cwd(), filePath));
     }
+    stream.pipe(res);
   };
 }
 
@@ -103,7 +100,7 @@ function fanction(handle) {
       res,
       next,
       json: data => res.json(data),
-      proxy: (url, proxyOptions = {}, convert) => {
+      proxy: async (url, proxyOptions = {}, convert) => {
         const method = req.method.toLowerCase();
         const { search } = urlParse(request.url);
         const requestOptions = {
@@ -113,12 +110,8 @@ function fanction(handle) {
         };
 
         if (method === 'post' || method === 'patch' || method === 'put') {
-          const { type } = contentType.parse(req);
-          if (type === 'application/json') {
-            requestOptions.body = JSON.stringify(req.body);
-          } else if (type === 'application/x-www-form-urlencoded') {
-            requestOptions.body = qs.stringify(req.body);
-          }
+          const body = await getRequestRawBody(req);
+          requestOptions.body = body;
         }
 
         const requestStream = request(requestOptions)
