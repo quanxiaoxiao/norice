@@ -1,11 +1,11 @@
 const _ = require('lodash');
 const { resolve } = require('path');
-const through = require('through2');
 const shelljs = require('shelljs');
 const fs = require('fs');
 const concatStream = require('concat-stream');
 const { parse: urlParse } = require('url');
 const request = require('request');
+const zlib = require('zlib');
 const { checkPropTypes } = require('quan-prop-types');
 const {
   isHttpURL,
@@ -19,7 +19,6 @@ const config = require('../../config');
 
 function proxy(host, proxyOptions = {}, record) {
   return async (req, res) => {
-    const chunks = [];
     const method = req.method.toLowerCase();
     const {
       pathname,
@@ -50,27 +49,47 @@ function proxy(host, proxyOptions = {}, record) {
       requestOptions.body = body;
     }
 
+
+    const chunks = [];
+
     request(requestOptions)
-      .pipe(through(function _through(chunk, encode, cb) {
-        if (record) {
-          chunks.push(chunk);
-        }
-        this.push(chunk);
-        cb();
-      }))
-      .pipe(res)
+      .on('response', (response) => {
+        res.status(response.statusCode);
+
+        let len = 0;
+
+        Object.keys(response.headers)
+          .forEach((key) => {
+            res.set(key, response.headers[key]);
+          });
+
+        response.on('data', (chunk) => {
+          if (record) {
+            len += chunk.length;
+            chunks.push(chunk);
+          }
+          res.write(chunk);
+        });
+
+
+        response.on('end', () => {
+          res.end();
+          if (record && !_.isEmpty(chunks)) {
+            const recordFilePath = resolve(process.cwd(), record, req.path.substring(1));
+            if (!shelljs.test('-d', recordFilePath)) {
+              shelljs.mkdir('-p', recordFilePath);
+            }
+            if ((response.headers['content-encoding'] || '').toLowerCase() === 'gzip') {
+              zlib.gunzip(Buffer.concat(chunks, len), (err, data) => {
+                fs.writeFileSync(resolve(recordFilePath, getRecordNameByReq(req)), data);
+              });
+            }
+          }
+        });
+      })
       .on('error', (error) => {
         res.status(500);
         res.json({ error: error.message });
-      })
-      .on('finish', () => {
-        if (record && !_.isEmpty(chunks)) {
-          const recordFilePath = resolve(process.cwd(), record, path.substring(1));
-          if (!shelljs.test('-d', recordFilePath)) {
-            shelljs.mkdir('-p', recordFilePath);
-          }
-          fs.writeFileSync(resolve(recordFilePath, getRecordNameByReq(req)), Buffer.concat(chunks));
-        }
       });
   };
 }

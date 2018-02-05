@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const http = require('http');
+const compression = require('compression');
 const { getWebpack, getMiddlewares } = require('../config');
 
 const Router = require('./router');
@@ -16,6 +17,7 @@ module.exports = () => {
   app.use(bodyParser.urlencoded({ extended: false }));
   app.use(bodyParser.json());
   app.use(loggerMiddleware);
+  app.use(compression());
   const middlewares = getMiddlewares();
   if (middlewares) {
     middlewares.forEach((middleware) => {

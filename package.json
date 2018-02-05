@@ -1,6 +1,6 @@
 {
   "name": "norice",
-  "version": "0.0.35",
+  "version": "0.0.37",
   "main": "bin/norice",
   "license": "MIT",
   "engines": {
@@ -37,6 +37,7 @@
   "homepage": "https://github.com/quanxiaoxiao/norice",
   "dependencies": {
     "body-parser": "^1.18.2",
+    "compression": "^1.7.1",
     "concat-stream": "^1.6.0",
     "content-type": "^1.0.4",
     "cors": "^2.8.4",
