@@ -79,10 +79,13 @@ function proxy(host, proxyOptions = {}, record) {
             if (!shelljs.test('-d', recordFilePath)) {
               shelljs.mkdir('-p', recordFilePath);
             }
+            const rawData = Buffer.concat(chunks, len);
             if ((response.headers['content-encoding'] || '').toLowerCase() === 'gzip') {
-              zlib.gunzip(Buffer.concat(chunks, len), (err, data) => {
+              zlib.gunzip(rawData, (err, data) => {
                 fs.writeFileSync(resolve(recordFilePath, getRecordNameByReq(req)), data);
               });
+            } else {
+              fs.writeFileSync(resolve(recordFilePath, getRecordNameByReq(req)), rawData);
             }
           }
         });
