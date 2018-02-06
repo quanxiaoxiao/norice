@@ -11,6 +11,7 @@ const {
   uploadFile,
   downloadFile,
   removeFile,
+  recordFile,
 } = require('../../file');
 
 module.exports = function parseRoutes(paths) {
@@ -37,6 +38,11 @@ module.exports = function parseRoutes(paths) {
       }
     } else if (isValidateHandle(key, handle)) {
       if (handle.dir) {
+        const fileRecord = recordFile();
+        handle.fileRecord = fileRecord;
+        if (handle.recordFile) {
+          handle.recordFile(fileRecord);
+        }
         routes.push(new Route(`${key}/:id`, downloadFile(handle), 'get'));
         routes.push(new Route(key, uploadFile(handle), 'post'));
         routes.push(new Route(`${key}/:id`, removeFile(handle), 'delete'));

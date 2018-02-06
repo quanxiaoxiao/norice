@@ -92,7 +92,7 @@ function proxy(host, proxyOptions = {}, record) {
       })
       .on('error', (error) => {
         res.status(500);
-        res.json({ error: error.message });
+        res.end(error);
       });
   };
 }
@@ -107,7 +107,10 @@ function file(filePath, record) {
     } else {
       stream = fs.createReadStream(resolve(process.cwd(), filePath));
     }
-    stream.pipe(res);
+    stream.on('error', (error) => {
+      res.status(500);
+      res.end(error);
+    }).pipe(res);
   };
 }
 
@@ -139,7 +142,7 @@ function fanction(handle) {
         const requestStream = request(requestOptions)
           .on('error', (error) => {
             res.status(500);
-            res.json({ error: error.message });
+            res.end(error);
           });
         if (convert) {
           requestStream.pipe(concatStream((chunks) => {
@@ -156,7 +159,11 @@ function fanction(handle) {
       },
       file: (path, convert) => {
         const filePath = resolve(process.cwd(), path);
-        const readStream = fs.createReadStream(filePath);
+        const readStream = fs.createReadStream(filePath)
+          .on('error', (error) => {
+            res.status(500);
+            res.end(error);
+          });
         if (convert) {
           readStream.pipe(concatStream((chunks) => {
             const data = convert(chunks);
@@ -222,12 +229,8 @@ class Route {
       this.response = json(handle);
     } else {
       this.response = (req, res) => {
-        const msg = `path: ${path}, can't handle this type ${typeof handle}`;
-        console.error(msg);
         res.status(500);
-        res.json({
-          error: msg,
-        });
+        res.end(`path: ${path}, can't handle this type ${typeof handle}`);
       };
     }
   }
@@ -255,11 +258,9 @@ class Route {
         res.status(this.successStatusCode);
         response(req, res);
       }
-    } catch (e) {
+    } catch (error) {
       res.status(500);
-      res.json({
-        error: e.message,
-      });
+      res.end(error);
     }
   }
 }

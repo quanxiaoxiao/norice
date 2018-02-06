@@ -1,6 +1,6 @@
 {
   "name": "norice",
-  "version": "0.0.38",
+  "version": "0.0.39",
   "main": "bin/norice",
   "license": "MIT",
   "engines": {
@@ -50,6 +50,7 @@
     "request": "^2.83.0",
     "shelljs": "^0.8.1",
     "through2": "^2.0.3",
+    "uuid": "^3.2.1",
     "webpack": "^3.10.0",
     "webpack-dev-middleware": "^2.0.4",
     "webpack-hot-middleware": "^2.21.0",

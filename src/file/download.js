@@ -4,21 +4,32 @@ const { getFilePath } = require('./helper');
 
 module.exports = config => ({ req, res }) => {
   const { id } = req.params;
-  const filePath = path.resolve(getFilePath(config.dir, req), id);
-  if (!shelljs.test('-f', filePath)) {
+  const {
+    success,
+    fileRecord,
+    dir,
+  } = config;
+  const etag = fileRecord.getEtagById(id);
+  if (!etag) {
+    res.status(404);
+    res.json({ msg: 'file is not exists' });
+    return;
+  }
+  const filePathName = path.resolve(getFilePath(dir, req), etag);
+  if (!shelljs.test('-f', filePathName)) {
     res.status(404);
     res.json({ msg: 'file is not exists' });
     return;
   }
   const { fileName } = req.query;
   if (fileName) {
-    res.download(filePath, fileName);
+    res.download(filePathName, fileName);
   } else {
-    res.download(filePath);
+    res.download(filePathName);
   }
-  if (config.success) {
-    config.success({
-      etag: filePath,
+  if (success) {
+    success({
+      id,
       query: req.query,
       type: 'download',
     });
