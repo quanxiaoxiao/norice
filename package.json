@@ -43,7 +43,7 @@
     "cors": "^2.8.4",
     "express": "^4.16.2",
     "gaze": "^1.1.2",
-    "lodash": "^4.17.4",
+    "lodash": "^4.17.5",
     "moment": "^2.20.1",
     "quan-prop-types": "^1.0.9",
     "raw-body": "^2.3.2",
