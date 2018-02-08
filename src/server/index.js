@@ -37,9 +37,9 @@ module.exports = () => {
     });
     req.on('end', () => {
       const msg = Buffer.concat(chucks).toString('utf-8');
-      console.log('socket broadcast', msg);
       wss.emit('broadcast', msg);
       res.status(204);
+      res.set('Content-Length', '0');
       res.end();
     });
   });

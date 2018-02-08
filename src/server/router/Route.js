@@ -92,7 +92,7 @@ function proxy(host, proxyOptions = {}, record) {
       })
       .on('error', (error) => {
         res.status(500);
-        res.end(error);
+        res.send(error);
       });
   };
 }
@@ -109,7 +109,7 @@ function file(filePath, record) {
     }
     stream.on('error', (error) => {
       res.status(500);
-      res.end(error);
+      res.send(error);
     }).pipe(res);
   };
 }
@@ -127,7 +127,11 @@ function fanction(handle) {
       json: data => res.json(data),
       proxy: async (url, proxyOptions = {}, convert) => {
         const method = req.method.toLowerCase();
-        const { search } = urlParse(request.url);
+        const { search } = urlParse(req.url);
+        if (typeof proxyOptions === 'function') {
+          convert = proxyOptions;
+          proxyOptions = {};
+        }
         const requestOptions = {
           ...proxyOptions,
           url: `${url}${search || ''}`,
@@ -142,7 +146,7 @@ function fanction(handle) {
         const requestStream = request(requestOptions)
           .on('error', (error) => {
             res.status(500);
-            res.end(error);
+            res.send(error);
           });
         if (convert) {
           requestStream.pipe(concatStream((chunks) => {
@@ -162,7 +166,7 @@ function fanction(handle) {
         const readStream = fs.createReadStream(filePath)
           .on('error', (error) => {
             res.status(500);
-            res.end(error);
+            res.send(error);
           });
         if (convert) {
           readStream.pipe(concatStream((chunks) => {
@@ -260,7 +264,7 @@ class Route {
       }
     } catch (error) {
       res.status(500);
-      res.end(error);
+      res.send(error);
     }
   }
 }
