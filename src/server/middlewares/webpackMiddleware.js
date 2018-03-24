@@ -9,23 +9,24 @@ function webpackMiddleware(webpackFilePath) {
   const result = [];
 
   result.push(webpackDevMiddleware(compiler, {
-    publicPath: webpackConfig.output.publickPath || '/',
-    stats: {
-      colors: true,
-    },
+    logLevel: 'warn',
+    publicPath: webpackConfig.output.publicPath,
   }));
 
-  result.push(webpackHotMiddleware(compiler));
+  result.push(webpackHotMiddleware(compiler, {
+    log: console.log,
+    path: '/__webpack_hmr',
+    heartbeat: 10 * 1000,
+  }));
 
   result.push((req, res, next) => {
-    const indexFilePath = path.resolve(webpackConfig.output.path, 'index.html');
-    compiler.outputFileSystem.readFile(indexFilePath, (err, indexHtmlTemplate) => {
+    compiler.outputFileSystem.readFile(path.resolve(webpackConfig.output.path, 'index.html'), (err, indexHtmlTemplate) => {
       if (err) {
         next(err);
         return;
       }
       res.set('Content-Type', 'text/html');
-      res.end(indexHtmlTemplate);
+      res.send(indexHtmlTemplate);
     });
   });
 

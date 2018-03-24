@@ -18,6 +18,8 @@ module.exports = () => {
   app.use(bodyParser.json());
   app.use(loggerMiddleware);
   app.use(compression());
+  app.set('etag', false);
+
   const middlewares = getMiddlewares();
   if (middlewares) {
     middlewares.forEach((middleware) => {
