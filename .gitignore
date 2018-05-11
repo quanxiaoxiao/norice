@@ -4,3 +4,4 @@ node_modules
 dist
 public
 coverage
+package-lock.json

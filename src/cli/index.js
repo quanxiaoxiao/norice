@@ -1,5 +1,6 @@
 const yargs = require('yargs');
-const run = require('./run');
+const fs = require('fs');
+const path = require('path');
 const pkg = require('../../package.json');
 
 module.exports = () => {
@@ -11,6 +12,13 @@ module.exports = () => {
     },
   })
     .version(pkg.version).alias('version', 'v');
+  require('./run')(argv);
 
-  run(argv);
+  process.on('uncaughtException', (error) => {
+    fs.writeFileSync(path.resolve(process.cwd(), 'error.log'), error.toString());
+    const killTimer = setTimeout(() => {
+      process.exit(1);
+    }, 3000);
+    killTimer.unref();
+  });
 };
