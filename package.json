@@ -1,6 +1,6 @@
 {
   "name": "norice",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "main": "bin/norice",
   "license": "MIT",
   "engines": {
@@ -43,12 +43,12 @@
     "lodash": "^4.17.10",
     "moment": "^2.22.1",
     "node-watch": "^0.5.8",
-    "request": "^2.85.0",
-    "rxjs": "^6.1.0",
+    "request": "^2.87.0",
+    "rxjs": "^6.2.0",
     "webpack": "^4.8.3",
     "webpack-dev-middleware": "^3.1.3",
     "webpack-hot-middleware": "^2.22.2",
-    "ws": "^5.1.1",
-    "yargs": "^11.0.0"
+    "ws": "^5.2.0",
+    "yargs": "^11.1.0"
   }
 }
