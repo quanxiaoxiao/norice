@@ -15,11 +15,18 @@ const apiRequest = options =>
 
 const mapType = {
   string: host => (ctx) => {
-    ctx.type = 'application/json;charset=UTF-8';
-    ctx.body = request({
+    const proxy = request({
       url: `${host}${ctx.url}`,
       method: ctx.method.toLowerCase(),
     });
+
+    proxy.on('response', ({ headers }) => {
+      Object.entries(headers).forEach(([key, value]) => ctx.set({
+        [key]: value,
+      }));
+    });
+
+    ctx.body = proxy;
   },
   array: arr => async (ctx) => {
     const [first, ...other] = arr;
@@ -53,10 +60,22 @@ const mapType = {
         url: result,
       } : result,
     };
-    ctx.body = request(options);
+    const proxy = request(options);
+    proxy.on('response', ({ headers }) => {
+      Object.entries(headers).forEach(([key, value]) => ctx.set({
+        [key]: value,
+      }));
+    });
+    ctx.body = proxy;
   },
   object: options => (ctx) => {
-    ctx.body = request(options);
+    const proxy = request(options);
+    proxy.on('response', ({ headers }) => {
+      Object.entries(headers).forEach(([key, value]) => ctx.set({
+        [key]: value,
+      }));
+    });
+    ctx.body = proxy;
   },
 };
 
