@@ -1,10 +1,15 @@
 const path = require('path');
-const { Subject } = require('rxjs');
+const {
+  Subject,
+  bindNodeCallback,
+} = require('rxjs');
+const { Module } = require('module');
 const {
   tap,
   debounceTime,
   map,
   catchError,
+  switchMap,
 } = require('rxjs/operators');
 const _ = require('lodash');
 const watch = require('node-watch');
@@ -12,7 +17,6 @@ const chalk = require('chalk');
 const { isSubset } = require('./set');
 const handler = require('./handle');
 const fs = require('fs');
-const vm = require('vm');
 
 const configFile = 'norice.config.js';
 const configDir = process.cwd();
@@ -30,28 +34,14 @@ module.exports = subject
   .pipe(
     tap(() => console.log('generate api ...')),
     debounceTime(2000),
-    map(() => {
-      const cfg = fs.readFileSync(configPath, 'utf-8');
-      return new vm.Script(cfg, {
-        filename: 'norice.config.js',
-        displayErrors: true,
-      });
-    }),
+    switchMap(() => bindNodeCallback(fs.readFile)(configPath, 'utf-8')),
     map((script) => {
-      const _module = Object.create(module);
-      _module.exports = null;
-      _module.paths.unshift(path.resolve(configDir, 'node_modules'));
-      script.runInNewContext({
-        module: _module,
-        require: _module.require,
-        __dirname: process.cwd(),
-        __filename: configPath,
-        console,
-      });
-      if (!_module.exports) {
-        throw new Error('Error reading configuration: `module.exports` not set');
-      }
-      return _module.exports;
+      const mod = new Module(configPath, module);
+      mod.__filename = configPath;
+      mod.__dirname = configDir;
+      mod.paths = Module._nodeModulePaths(configDir);
+      mod._compile(script, configPath);
+      return mod.exports;
     }),
     map(({ api = {}, middlewares = [], webpack }) => ({
       middlewares,

@@ -1,2 +1,6 @@
 #!/usr/bin/env node
+const { Module } = require('module');
+
+process.env.NODE_PATH = `${__dirname}:${process.cwd()}`;
+Module._initPaths();
 require('../src/cli/bin');
