@@ -19,14 +19,15 @@ const mapType = {
       url: `${host}${ctx.url}`,
       method: ctx.method.toLowerCase(),
     });
-
     proxy.on('response', ({ headers }) => {
       Object.entries(headers).forEach(([key, value]) => ctx.set({
         [key]: value,
       }));
     });
-
-    ctx.body = proxy;
+    proxy.on('error', (error) => {
+      console.error(error);
+    });
+    ctx.body = ctx.req.pipe(proxy);
   },
   array: arr => async (ctx) => {
     const [first, ...other] = arr;
@@ -66,6 +67,9 @@ const mapType = {
         [key]: value,
       }));
     });
+    proxy.on('error', (error) => {
+      console.error(error);
+    });
     ctx.body = proxy;
   },
   object: options => (ctx) => {
@@ -74,6 +78,9 @@ const mapType = {
       Object.entries(headers).forEach(([key, value]) => ctx.set({
         [key]: value,
       }));
+    });
+    proxy.on('error', (error) => {
+      console.error(error);
     });
     ctx.body = proxy;
   },
