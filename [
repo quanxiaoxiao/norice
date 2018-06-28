@@ -19,9 +19,8 @@ const mapType = {
       url: `${host}${ctx.url}`,
       method: ctx.method.toLowerCase(),
     });
-    proxy.on('response', (req) => {
-      ctx.status = req.statusCode;
-      const { headers } = req;
+    proxy.on('response', ({ headers }) => {
+      console.log(headers);
       Object.entries(headers).forEach(([key, value]) => ctx.set({
         [key]: value,
       }));
