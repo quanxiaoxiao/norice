@@ -19,9 +19,8 @@ const mapType = {
       url: `${host}${ctx.url}`,
       method: ctx.method.toLowerCase(),
     });
-    proxy.on('response', (req) => {
-      ctx.status = req.statusCode;
-      const { headers } = req;
+    proxy.on('response', ({ headers, statusCode }) => {
+      ctx.status = statusCode;
       Object.entries(headers).forEach(([key, value]) => ctx.set({
         [key]: value,
       }));
@@ -64,7 +63,8 @@ const mapType = {
       } : result,
     };
     const proxy = request(options);
-    proxy.on('response', ({ headers }) => {
+    proxy.on('response', ({ headers, statusCode }) => {
+      ctx.status = statusCode;
       Object.entries(headers).forEach(([key, value]) => ctx.set({
         [key]: value,
       }));
@@ -76,7 +76,8 @@ const mapType = {
   },
   object: options => (ctx) => {
     const proxy = request(options);
-    proxy.on('response', ({ headers }) => {
+    proxy.on('response', ({ headers, statusCode }) => {
+      ctx.status = statusCode;
       Object.entries(headers).forEach(([key, value]) => ctx.set({
         [key]: value,
       }));
