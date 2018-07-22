@@ -16,7 +16,7 @@ const apiRequest = options =>
 const mapType = {
   string: host => (ctx) => {
     const proxy = request({
-      url: `${host}${ctx.url}`,
+      url: `${host}${ctx.path}?${ctx.querystring}`,
       method: ctx.method.toLowerCase(),
     });
     proxy.on('response', ({ headers, statusCode }) => {
@@ -36,7 +36,7 @@ const mapType = {
       method: ctx.method.toLowerCase(),
     };
     if (_.isString(first)) {
-      options.url = `${first}${ctx.url}`;
+      options.url = `${first}${ctx.path}?${ctx.querystring}`;
     } else if (_.isFunction(first)) {
       const result = await first(ctx);
       options = {
