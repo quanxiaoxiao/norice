@@ -2,14 +2,14 @@ const request = require('request');
 const fp = require('lodash/fp');
 const _ = require('lodash');
 
-const apiRequest = options => new Promise((resolve, reject) => {
-  request(options, (error, res, body) => {
+const apiRequest = (options, req) => new Promise((resolve, reject) => {
+  req.pipe(request(options, (error, res, body) => {
     if (error) {
       reject(error);
     } else {
       resolve(body);
     }
-  });
+  }));
 });
 
 const mapType = {
@@ -50,7 +50,7 @@ const mapType = {
         ...first,
       };
     }
-    const body = await apiRequest(options);
+    const body = await apiRequest(options, ctx.req);
     ctx.body = fp.compose(...other.reverse())(body, ctx);
   },
   function: fn => async (ctx) => {
