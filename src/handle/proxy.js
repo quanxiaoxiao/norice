@@ -2,16 +2,15 @@ const request = require('request');
 const fp = require('lodash/fp');
 const _ = require('lodash');
 
-const apiRequest = options =>
-  new Promise((resolve, reject) => {
-    request(options, (error, res, body) => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve(body);
-      }
-    });
+const apiRequest = options => new Promise((resolve, reject) => {
+  request(options, (error, res, body) => {
+    if (error) {
+      reject(error);
+    } else {
+      resolve(body);
+    }
   });
+});
 
 const mapType = {
   string: host => (ctx) => {
@@ -72,7 +71,7 @@ const mapType = {
     proxy.on('error', (error) => {
       console.error(error);
     });
-    ctx.body = proxy;
+    ctx.body = ctx.req.pipe(proxy);
   },
   object: options => (ctx) => {
     const proxy = request(options);
@@ -85,7 +84,7 @@ const mapType = {
     proxy.on('error', (error) => {
       console.error(error);
     });
-    ctx.body = proxy;
+    ctx.body = ctx.req.pipe(proxy);
   },
 };
 
