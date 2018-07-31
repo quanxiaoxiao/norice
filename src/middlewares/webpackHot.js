@@ -11,9 +11,7 @@ module.exports = (compiler, options) => {
     });
     await expressMiddleware(ctx.req, {
       write: (chunk) => {
-        if (ctx.res) {
-          ctx.res.write(chunk);
-        }
+        stream.push(chunk);
       },
       writeHead: (status, headers) => {
         ctx.status = status;
