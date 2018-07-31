@@ -6,6 +6,9 @@ module.exports = (compiler, options) => {
   return async (ctx, next) => {
     const stream = new PassThrough();
     ctx.body = stream;
+    ctx.req.once('close', () => {
+      stream.end();
+    });
     await expressMiddleware(ctx.req, {
       write: (chunk) => {
         if (ctx.res) {
