@@ -16,7 +16,7 @@ const mapType = {
   string: host => (ctx) => {
     const proxy = request({
       url: `${host}${ctx.path}?${ctx.querystring}`,
-      method: ctx.method.toLowerCase(),
+      method: ctx.method,
     });
     proxy.on('response', ({ headers, statusCode }) => {
       ctx.status = statusCode;
@@ -30,7 +30,7 @@ const mapType = {
   array: arr => async (ctx) => {
     const [first, ...other] = arr;
     let options = {
-      method: ctx.method.toLowerCase(),
+      method: ctx.method,
     };
     if (_.isString(first)) {
       options.url = `${first}${ctx.path}?${ctx.querystring}`;
@@ -48,17 +48,23 @@ const mapType = {
         ...first,
       };
     }
+    if (options.url.indexOf('?') === -1) {
+      options.url = `${options.url}?${ctx.querystring}`;
+    }
     const body = await apiRequest(options, ctx.req);
     ctx.body = fp.compose(...other.reverse())(body, ctx);
   },
   function: fn => async (ctx) => {
     const result = await fn(ctx);
     const options = {
-      method: ctx.method.toLowerCase(),
+      method: ctx.method,
       ..._.isString(result) ? {
         url: result,
       } : result,
     };
+    if (options.url.indexOf('?') === -1) {
+      options.url = `${options.url}?${ctx.querystring}`;
+    }
     const proxy = request(options);
     proxy.on('response', ({ headers, statusCode }) => {
       ctx.status = statusCode;
@@ -70,6 +76,9 @@ const mapType = {
     ctx.body = ctx.req.pipe(proxy);
   },
   object: options => (ctx) => {
+    if (options.url.indexOf('?') === -1) {
+      options.url = `${options.url}?${ctx.querystring}`;
+    }
     const proxy = request(options);
     proxy.on('response', ({ headers, statusCode }) => {
       ctx.status = statusCode;
