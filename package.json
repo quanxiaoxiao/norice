@@ -1,6 +1,6 @@
 {
   "name": "norice",
-  "version": "1.1.9",
+  "version": "1.2.0",
   "main": "bin/norice",
   "license": "MIT",
   "engines": {
@@ -44,7 +44,7 @@
     "lodash": "^4.17.10",
     "moment": "^2.22.2",
     "node-watch": "^0.5.8",
-    "request": "^2.87.0",
+    "request": "^2.88.0",
     "rxjs": "^6.2.2",
     "showdown": "^1.8.6",
     "through2": "^2.0.3",

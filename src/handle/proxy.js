@@ -33,7 +33,7 @@ const mapType = {
       method: ctx.method,
     };
     if (_.isString(first)) {
-      options.url = `${first}${ctx.path}?${ctx.querystring}`;
+      options.url = `${first}${ctx.path}`;
     } else if (_.isFunction(first)) {
       const result = await first(ctx);
       options = {
@@ -76,10 +76,9 @@ const mapType = {
     ctx.body = ctx.req.pipe(proxy);
   },
   object: options => (ctx) => {
-    if (options.url.indexOf('?') === -1) {
-      options.url = `${options.url}?${ctx.querystring}`;
-    }
-    const proxy = request(options);
+    const url = options.url.indexOf('?') === -1 ?
+      `${options.url}?${ctx.querystring}` : options.url;
+    const proxy = request({ ...options, url });
     proxy.on('response', ({ headers, statusCode }) => {
       ctx.status = statusCode;
       ctx.set(headers);
