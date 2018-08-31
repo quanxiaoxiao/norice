@@ -29,18 +29,28 @@ const subject = new Subject();
 
 const METHODS = ['get', 'post', 'delete', 'put', 'patch'];
 
+let prevModule;
 
 module.exports = subject
   .pipe(
-    tap(() => console.log('generate api ...')),
+    tap(() => {
+      if (prevModule) {
+        prevModule.children.forEach((item) => {
+          if (!/^webpack\./.test(path.basename(item.filename))) {
+            delete require.cache[item.id];
+          }
+        });
+        delete require.cache[prevModule.id];
+      }
+      console.log('generate api ...');
+    }),
     debounceTime(2000),
     switchMap(() => bindNodeCallback(fs.readFile)(configPath, 'utf-8')),
     map((script) => {
-      const mod = new Module(configPath, module);
-      mod.__filename = configPath;
-      mod.__dirname = configDir;
+      const mod = new Module(configPath, null);
       mod.paths = Module._nodeModulePaths(configDir);
       mod._compile(script, configPath);
+      prevModule = mod;
       return mod.exports;
     }),
     map(({ api = {}, middlewares = [], webpack }) => ({
