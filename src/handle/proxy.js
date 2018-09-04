@@ -84,7 +84,7 @@ const mapType = {
   },
   function: fn => async (ctx) => {
     const options = await fn(ctx);
-    ctx.body = requestShim(ctx, getProxyOptions(ctx, options.url, _.omit(options, ['url'])));
+    ctx.body = requestShim(ctx, getProxyOptions(ctx, options.url || options, _.isString(options) ? {} : _.omit(options, ['url'])));
   },
   object: options => (ctx) => {
     ctx.body = requestShim(ctx, getProxyOptions(ctx, options.url, _.omit(options, ['url'])));
