@@ -1,92 +1,93 @@
-const request = require('request');
+const url = require('url');
+const { PassThrough } = require('stream');
+const http = require('http');
 const fp = require('lodash/fp');
 const _ = require('lodash');
 
-const apiRequest = (options, req) => new Promise((resolve, reject) => {
-  req.pipe(request(options, (error, res, body) => {
-    if (error) {
-      reject(error);
-    } else {
-      resolve(body);
-    }
-  }));
-});
+const requestShim = (ctx, options) => {
+  const passThrough = new PassThrough();
+  console.log(`proxy: ${JSON.stringify(options)}`);
+  ctx.req.pipe(http.request(options))
+    .on('response', (res) => {
+      ctx.code = res.statusCode;
+      ctx.set(res.headers);
+      res.pipe(passThrough);
+    })
+    .on('error', (error) => {
+      passThrough.emit('error', error);
+    });
+
+  return passThrough;
+};
+
+const getProxyOptions = (ctx, proxyUrl, other = {}) => {
+  const {
+    hostname,
+    port,
+    query,
+    pathname,
+  } = url.parse(proxyUrl);
+  const options = {
+    hostname,
+    path: pathname !== '/' ? `${pathname}?${query || ctx.querystring}` : `${ctx.path}?${ctx.querystring}`,
+    port: Number(port) || 80,
+    method: ctx.method,
+    headers: ctx.headers,
+    ...other,
+  };
+  return options;
+};
 
 const mapType = {
-  string: host => (ctx) => {
-    const proxy = request({
-      url: `${host}${ctx.path}?${ctx.querystring}`,
-      method: ctx.method,
-    });
-    proxy.on('response', ({ headers, statusCode }) => {
-      ctx.status = statusCode;
-      ctx.set(headers);
-    });
-    proxy.on('error', (error) => {
-      console.error(error);
-    });
-    ctx.body = ctx.req.pipe(proxy);
+  string: proxyUrl => (ctx) => {
+    ctx.body = requestShim(ctx, getProxyOptions(ctx, proxyUrl));
   },
   array: arr => async (ctx) => {
     const [first, ...other] = arr;
-    let options = {
-      method: ctx.method,
-    };
+    let options;
     if (_.isString(first)) {
-      options.url = `${first}${ctx.path}`;
+      options = getProxyOptions(ctx, first);
     } else if (_.isFunction(first)) {
-      const result = await first(ctx);
-      options = {
-        ...options,
-        ..._.isString(result) ? {
-          url: result,
-        } : result,
-      };
+      const obj = await first(ctx);
+      options = getProxyOptions(ctx, obj.url, _.omit(obj, ['url']));
     } else if (_.isPlainObject(first)) {
-      options = {
-        ...options,
-        ...first,
-      };
+      options = getProxyOptions(ctx, first.url, _.omit(first, ['url']));
     }
-    if (options.url.indexOf('?') === -1) {
-      options.url = `${options.url}?${ctx.querystring}`;
+    if (_.isEmpty(options)) {
+      console.log('options is empty');
+      ctx.throw(500);
     }
-    const body = await apiRequest(options, ctx.req);
-    ctx.body = fp.compose(...other.reverse())(body, ctx);
+    const passThrough = new PassThrough();
+    const buf = [];
+    let size = 0;
+    ctx.req.pipe(http.request(options))
+      .on('response', (res) => {
+        ctx.code = res.statusCode;
+        ctx.set(_.omit(res.headers, ['content-length', 'content-type']));
+        ctx.type = 'json';
+        res
+          .on('data', (chunk) => {
+            size += chunk.length;
+            buf.push(chunk);
+          })
+          .on('end', () => {
+            passThrough.end(fp.compose(...other.reverse())(Buffer.concat(buf, size), ctx));
+          })
+          .on('error', (error) => {
+            passThrough.emit('error', error);
+          });
+      })
+      .on('error', (error) => {
+        passThrough.emit('error', error);
+      });
+    ctx.body = passThrough;
   },
   function: fn => async (ctx) => {
-    const result = await fn(ctx);
-    const options = {
-      method: ctx.method,
-      ..._.isString(result) ? {
-        url: result,
-      } : result,
-    };
-    if (options.url.indexOf('?') === -1) {
-      options.url = `${options.url}?${ctx.querystring}`;
-    }
-    const proxy = request(options);
-    proxy.on('response', ({ headers, statusCode }) => {
-      ctx.status = statusCode;
-      ctx.set(headers);
-    });
-    proxy.on('error', (error) => {
-      console.error(error);
-    });
-    ctx.body = ctx.req.pipe(proxy);
+    const options = await fn(ctx);
+    ctx.body = requestShim(ctx, getProxyOptions(ctx, options.url, _.omit(options, ['url'])));
   },
   object: options => (ctx) => {
-    const url = options.url.indexOf('?') === -1 ?
-      `${options.url}?${ctx.querystring}` : options.url;
-    const proxy = request({ ...options, url });
-    proxy.on('response', ({ headers, statusCode }) => {
-      ctx.status = statusCode;
-      ctx.set(headers);
-    });
-    proxy.on('error', (error) => {
-      console.error(error);
-    });
-    ctx.body = ctx.req.pipe(proxy);
+    ctx.body = requestShim(ctx, getProxyOptions(ctx, options.url, _.omit(options, ['url'])));
   },
 };
 
