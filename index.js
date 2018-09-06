@@ -20,3 +20,22 @@ request.on('close', () => {
 });
 
 request.end();
+
+{
+  compose: [
+    {
+      file: 'asdf',
+    },
+    {
+      body: [],
+    },
+    {
+      proxy: 'http://asdfsdf/asdf',
+    },
+    {
+      proxy: 'http://asdfsdf/asdf',
+    },
+    (a, b, c) => {
+    },
+  ],
+}

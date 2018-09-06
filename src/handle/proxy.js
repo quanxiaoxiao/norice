@@ -49,7 +49,7 @@ const mapType = {
       options = getProxyOptions(ctx, first);
     } else if (_.isFunction(first)) {
       const obj = await first(ctx);
-      options = getProxyOptions(ctx, obj.url, _.omit(obj, ['url']));
+      options = getProxyOptions(ctx, obj.url || obj, _.isString(obj) ? {} : _.omit(obj, ['url']));
     } else if (_.isPlainObject(first)) {
       options = getProxyOptions(ctx, first.url, _.omit(first, ['url']));
     }
