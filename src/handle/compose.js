@@ -78,7 +78,7 @@ const compose = arr => async (ctx) => {
     const result = await handlerMap[type](handler, ctx);
     return result;
   }));
-  const result = await last(resultList);
+  const result = await last(resultList, ctx);
   ctx.body = result;
 };
 
