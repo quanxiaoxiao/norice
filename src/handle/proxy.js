@@ -9,7 +9,7 @@ const requestShim = (ctx, options) => {
   console.log(`proxy: ${JSON.stringify(options)}`);
   ctx.req.pipe(http.request(options))
     .on('response', (res) => {
-      ctx.code = res.statusCode;
+      ctx.status = res.statusCode;
       ctx.set(res.headers);
       res.pipe(passThrough);
     })
@@ -62,7 +62,7 @@ const mapType = {
     let size = 0;
     ctx.req.pipe(http.request(options))
       .on('response', (res) => {
-        ctx.code = res.statusCode;
+        ctx.status = res.statusCode;
         ctx.set(_.omit(res.headers, ['content-length', 'content-type']));
         ctx.type = 'json';
         res
