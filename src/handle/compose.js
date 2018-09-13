@@ -31,6 +31,9 @@ const handlerMap = {
       port,
       path,
     } = url.parse(options.url);
+    if (!hostname) {
+      ctx.throw(404);
+    }
     const proxyRequest = http.request({
       hostname,
       path,

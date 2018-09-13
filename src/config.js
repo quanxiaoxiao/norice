@@ -49,6 +49,9 @@ module.exports = subject
     map((script) => {
       const mod = new Module(configPath, null);
       mod.paths = Module._nodeModulePaths(configDir);
+      if (!mod.filename) {
+        mod.filename = configPath;
+      }
       mod._compile(script, configPath);
       prevModule = mod;
       return mod.exports;
