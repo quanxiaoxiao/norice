@@ -11,12 +11,12 @@ const requestShim = (ctx, options) => {
     ctx.throw(404);
   }
   ctx.req.pipe(http.request(options))
-    .on('response', (res) => {
+    .once('response', (res) => {
       ctx.status = res.statusCode;
       ctx.set(res.headers);
       res.pipe(passThrough);
     })
-    .on('error', (error) => {
+    .once('error', (error) => {
       passThrough.emit('error', error);
     });
 
@@ -77,23 +77,26 @@ const mapType = {
     const buf = [];
     let size = 0;
     ctx.req.pipe(http.request(options))
-      .on('response', (res) => {
+      .once('response', (res) => {
         ctx.status = res.statusCode;
         ctx.set(_.omit(res.headers, ['host', 'content-length', 'content-type']));
         ctx.type = 'json';
+        const handleData = (chunk) => {
+          size += chunk.length;
+          buf.push(chunk);
+        };
         res
-          .on('data', (chunk) => {
-            size += chunk.length;
-            buf.push(chunk);
-          })
-          .on('end', () => {
+          .on('data', handleData)
+          .once('end', () => {
+            res.off('data', handleData);
             passThrough.end(fp.compose(...other.reverse())(Buffer.concat(buf, size), ctx));
           })
-          .on('error', (error) => {
+          .once('error', (error) => {
+            res.off('data', handleData);
             passThrough.emit('error', error);
           });
       })
-      .on('error', (error) => {
+      .once('error', (error) => {
         passThrough.emit('error', error);
       });
     ctx.body = passThrough;

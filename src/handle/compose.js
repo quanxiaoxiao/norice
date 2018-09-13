@@ -51,14 +51,17 @@ const handlerMap = {
       proxyRequest.once('response', (res) => {
         const buf = [];
         let size = 0;
-        res.on('data', (chunk) => {
+        const handleData = (chunk) => {
           size += chunk.length;
           buf.push(chunk);
-        });
-        res.on('error', (error) => {
+        };
+        res.on('data', handleData);
+        res.once('error', (error) => {
+          res.off('data', handleData);
           reject(error);
         });
-        res.on('end', () => {
+        res.once('end', () => {
+          res.off('data', handleData);
           resolve(Buffer.concat(buf, size));
         });
       });
