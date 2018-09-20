@@ -34,12 +34,14 @@ const handlerMap = {
     if (!hostname) {
       ctx.throw(404);
     }
-    const proxyRequest = http.request({
+    const reqOptions = {
       hostname,
       path,
       port: Number(port) || 80,
       ..._.omit(options, ['url', 'body']),
-    });
+    };
+    console.log(`compose-proxy: ${JSON.stringify(reqOptions)}`);
+    const proxyRequest = http.request(reqOptions);
     if (options.body) {
       proxyRequest.write(options.body);
     }

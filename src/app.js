@@ -1,6 +1,8 @@
 const Koa = require('koa');
 const Router = require('koa-router');
+const http = require('http');
 const path = require('path');
+const url = require('url');
 const webpack = require('webpack');
 const devMiddleware = require('./middlewares/webpackDev');
 const hotMiddleware = require('./middlewares/webpackHot');
@@ -9,9 +11,11 @@ const logger = require('./middlewares/logger');
 
 const app = new Koa();
 
+const server = http.createServer(app.callback());
 
 let compiler;
 const webpackMiddlewares = [];
+let isAddSocketUpgradeEvent = false;
 
 config$.subscribe(({ api, middlewares, webpack: webpackConfig }) => {
   while (app.middleware.length) {
@@ -59,6 +63,28 @@ config$.subscribe(({ api, middlewares, webpack: webpackConfig }) => {
       app.use(middleware);
     });
   }
+
+  if (!isAddSocketUpgradeEvent) {
+    isAddSocketUpgradeEvent = true;
+    server.on('upgrade', (req, socket, head) => {
+      const { pathname } = url.parse(req.url);
+      const upgrade = api.find(item =>
+        item.pathname === pathname &&
+        item.method === 'GET' &&
+        item.handleType === 'socket');
+      if (upgrade) {
+        console.log('socket connection:', socket.remoteAddress);
+        upgrade.handle(req, socket, head);
+      } else {
+        console.log('socket destory:', socket.remoteAddress);
+        socket.destroy();
+      }
+    });
+  }
 });
 
-module.exports = app;
+module.exports = (port) => {
+  server.listen(port, () => {
+    console.log(`Listening at port: ${port}`);
+  });
+};
