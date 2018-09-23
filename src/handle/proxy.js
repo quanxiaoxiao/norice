@@ -49,10 +49,18 @@ const mapType = {
 
 const proxy = (obj) => {
   if (obj == null) {
-    return obj;
+    return (ctx) => {
+      ctx.throw(404);
+    };
   }
   const type = Array.isArray(obj) ? 'array' : typeof obj;
-  return mapType[type] && mapType[type](obj);
+  const handler = mapType[type];
+  if (!handler) {
+    return (ctx) => {
+      ctx.throw(404);
+    };
+  }
+  return handler(obj);
 };
 
 module.exports = proxy;
