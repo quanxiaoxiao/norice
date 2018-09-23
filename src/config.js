@@ -4,6 +4,7 @@ const {
   bindNodeCallback,
 } = require('rxjs');
 const { Module } = require('module');
+const fs = require('fs');
 const {
   tap,
   debounceTime,
@@ -16,7 +17,6 @@ const watch = require('node-watch');
 const chalk = require('chalk');
 const { isSubset } = require('./set');
 const handler = require('./handle');
-const fs = require('fs');
 
 const configFile = 'norice.config.js';
 const configDir = process.cwd();
@@ -106,10 +106,9 @@ module.exports = subject
     })),
     tap(({ api }) => {
       console.log('generate api list ---------------------------');
-      const info = api.map(item =>
-        `${chalk.gray('pathname:')} ${item.pathname}, ` +
-        `${chalk.gray('method:')} ${chalk.bold(item.method.toUpperCase())}, ` +
-        `${chalk.gray('type:')} ${item.type}`)
+      const info = api.map(item => `${chalk.gray('pathname:')} ${item.pathname}, `
+        + `${chalk.gray('method:')} ${chalk.bold(item.method.toUpperCase())}, `
+        + `${chalk.gray('type:')} ${item.type}`)
         .join('\n');
       console.log(info);
       console.log('---------------------------------------------');
@@ -128,4 +127,3 @@ configWatch.on('change', () => {
 setTimeout(() => {
   subject.next();
 }, 200);
-

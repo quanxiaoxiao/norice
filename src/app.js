@@ -68,10 +68,9 @@ config$.subscribe(({ api, middlewares, webpack: webpackConfig }) => {
     isAddSocketUpgradeEvent = true;
     server.on('upgrade', (req, socket, head) => {
       const { pathname } = url.parse(req.url);
-      const upgrade = api.find(item =>
-        item.pathname === pathname &&
-        item.method === 'GET' &&
-        item.handleType === 'socket');
+      const upgrade = api.find(item => item.pathname === pathname
+        && item.method === 'GET'
+        && item.handleType === 'socket');
       if (upgrade) {
         console.log('socket connection:', socket.remoteAddress);
         upgrade.handle(req, socket, head);

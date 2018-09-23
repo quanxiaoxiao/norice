@@ -1,41 +1,36 @@
-const http = require('http');
+const { Readable } = require('stream');
 
-const request = http.request({
-  hostname: '192.168.0.189',
-  port: 25804,
-  path: '/api/types',
+const data = ['aaa', 'bbb', 'ccc', 'ddd'];
+
+const reader = new Readable({
+  read: () => {
+    setTimeout(() => {
+      const chunk = data.pop();
+      if (chunk) {
+        reader.push(chunk);
+      } else {
+        reader.emit('error', 'aaa');
+      }
+    }, 1000);
+  },
 });
 
-request.on('response', (res) => {
-  console.log(res.statusCode);
-  console.log(res.headers);
-});
-
-request.on('error', (error) => {
-  console.log(error.toString());
-});
-
-request.on('close', () => {
+reader.on('close', () => {
   console.log('close');
 });
 
-request.end();
+reader.on('end', () => {
+  console.log('end');
+});
 
-{
-  compose: [
-    {
-      file: 'asdf',
-    },
-    {
-      body: [],
-    },
-    {
-      proxy: 'http://asdfsdf/asdf',
-    },
-    {
-      proxy: 'http://asdfsdf/asdf',
-    },
-    (a, b, c) => {
-    },
-  ],
-}
+reader.on('error', () => {
+  console.log('error');
+  reader.destroy();
+  setTimeout(() => {
+    console.log(reader._readableState);
+  }, 1000);
+});
+
+reader.on('data', (chunk) => {
+  console.log('data', chunk.toString());
+});
