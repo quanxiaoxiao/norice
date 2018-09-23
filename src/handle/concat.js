@@ -34,7 +34,7 @@ const handlerMap = {
   },
 };
 
-const compose = arr => async (ctx) => {
+const concat = arr => async (ctx) => {
   if (!Array.isArray(arr) || _.isEmpty(arr)) {
     ctx.trhow(404);
   }
@@ -49,4 +49,4 @@ const compose = arr => async (ctx) => {
   ctx.body = ret;
 };
 
-module.exports = compose;
+module.exports = concat;

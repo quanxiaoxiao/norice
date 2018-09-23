@@ -23,7 +23,7 @@ module.exports = (ctx, options, emitError, setOutgoing = true) => {
     })
     .once('error', (error) => {
       ctx.status = 500;
-      //  console.error(error);
+      console.error(error);
       if (proxyRes) {
         proxyRes.unpipe(passThrough);
       }
