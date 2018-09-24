@@ -1,12 +1,12 @@
 const Koa = require('koa');
 const Router = require('koa-router');
 const http = require('http');
+const url = require('url');
 const path = require('path');
 const webpack = require('webpack');
 const devMiddleware = require('./middlewares/webpackDev');
 const hotMiddleware = require('./middlewares/webpackHot');
 const config$ = require('./config');
-const createHttpHeader = require('./utils/createHttpHeader');
 const logger = require('./middlewares/logger');
 
 const app = new Koa();
@@ -15,6 +15,8 @@ const server = http.createServer(app.callback());
 
 let compiler;
 const webpackMiddlewares = [];
+
+let wsRouteList = [];
 
 config$.subscribe(({ api, middlewares, webpack: webpackConfig }) => {
   while (app.middleware.length) {
@@ -25,10 +27,18 @@ config$.subscribe(({ api, middlewares, webpack: webpackConfig }) => {
     app.use(middleware);
   });
   const router = new Router();
+
   app.use(router.routes());
-  api.forEach(({ method, pathname, handle }) => {
-    router[method](pathname, handle);
-  });
+  app.use(router.allowedMethods());
+
+  api
+    .filter(item => !/^ws/.test(item.handleType))
+    .forEach(({ method, pathname, handle }) => {
+      router[method.toLowerCase()](pathname, handle);
+    });
+
+  wsRouteList = api.filter(item => /^ws/.test(item.handleType));
+
   router.get('/apis', (ctx) => {
     ctx.body = api.map(item => ({
       pathname: item.pathname,
@@ -65,36 +75,17 @@ config$.subscribe(({ api, middlewares, webpack: webpackConfig }) => {
 });
 
 server.on('upgrade', (req, socket) => {
-  const proxyReq = http.request({
-    hostname: '127.0.0.1',
-    port: 8080,
-    path: '/socket',
-    headers: req.headers,
-  });
-  proxyReq.once('response', (res) => {
-    if (!res.upgrade) {
-      res.pipe(socket);
-      socket.destroy();
-    }
-  });
-  proxyReq.once('upgrade', (proxyRes, proxySocket) => {
-    socket.write(createHttpHeader('HTTP/1.1 101 Switching Protocols', proxyRes.headers));
-    proxySocket.pipe(socket);
-    socket.pipe(proxySocket);
+  const { pathname } = url.parse(req.url);
+  const upgrade = wsRouteList.find(item => item.pathname === pathname);
+  if (upgrade) {
+    upgrade.handle(req, socket, server);
+  } else {
+    socket.destroy();
+  }
+});
 
-    socket.once('error', () => {
-      proxyReq.end();
-    });
-
-    proxySocket.once('error', () => {
-      socket.end();
-    });
-  });
-
-  proxyReq.once('error', () => {
-    socket.end();
-  });
-  proxyReq.end();
+server.on('error', (error) => {
+  console.error(error);
 });
 
 module.exports = (port) => {

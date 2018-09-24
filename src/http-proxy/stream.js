@@ -23,13 +23,13 @@ module.exports = (ctx, options, emitError, setOutgoing = true) => {
     })
     .once('error', (error) => {
       ctx.status = 500;
-      console.error(error);
       if (proxyRes) {
         proxyRes.unpipe(passThrough);
       }
       if (emitError) {
         passThrough.emit('error', error);
       } else if (!passThrough.destroyed) {
+        console.error(error);
         passThrough.end();
       }
     });

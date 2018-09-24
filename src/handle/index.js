@@ -3,4 +3,4 @@ exports.body = require('./body');
 exports.proxy = require('./proxy');
 exports.markdown = require('./markdown');
 exports.concat = require('./concat');
-exports.socket = require('./socket');
+exports.wsProxy = require('./wsProxy');
