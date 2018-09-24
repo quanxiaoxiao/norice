@@ -29,16 +29,12 @@ module.exports = (ctx, options) => {
   } else {
     path = `${pathname}?${query || ctx.querystring}`;
   }
-  const headers = {
-    ..._.omit(ctx.headers, ['host']),
-    ...(options.headers || {}),
-  };
   return {
     hostname,
     path,
     port: Number(port) || 80,
     method: ctx.method,
+    headers: _.omit(ctx.headers, ['host']),
     ...options,
-    headers,
   };
 };

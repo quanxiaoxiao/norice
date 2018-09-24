@@ -2,11 +2,11 @@ const Koa = require('koa');
 const Router = require('koa-router');
 const http = require('http');
 const path = require('path');
-const url = require('url');
 const webpack = require('webpack');
 const devMiddleware = require('./middlewares/webpackDev');
 const hotMiddleware = require('./middlewares/webpackHot');
 const config$ = require('./config');
+const createHttpHeader = require('./utils/createHttpHeader');
 const logger = require('./middlewares/logger');
 
 const app = new Koa();
@@ -15,7 +15,6 @@ const server = http.createServer(app.callback());
 
 let compiler;
 const webpackMiddlewares = [];
-let isAddSocketUpgradeEvent = false;
 
 config$.subscribe(({ api, middlewares, webpack: webpackConfig }) => {
   while (app.middleware.length) {
@@ -63,23 +62,39 @@ config$.subscribe(({ api, middlewares, webpack: webpackConfig }) => {
       app.use(middleware);
     });
   }
+});
 
-  if (!isAddSocketUpgradeEvent) {
-    isAddSocketUpgradeEvent = true;
-    server.on('upgrade', (req, socket, head) => {
-      const { pathname } = url.parse(req.url);
-      const upgrade = api.find(item => item.pathname === pathname
-        && item.method === 'GET'
-        && item.handleType === 'socket');
-      if (upgrade) {
-        console.log('socket connection:', socket.remoteAddress);
-        upgrade.handle(req, socket, head);
-      } else {
-        console.log('socket destory:', socket.remoteAddress);
-        socket.destroy();
-      }
+server.on('upgrade', (req, socket) => {
+  const proxyReq = http.request({
+    hostname: '127.0.0.1',
+    port: 8080,
+    path: '/socket',
+    headers: req.headers,
+  });
+  proxyReq.once('response', (res) => {
+    if (!res.upgrade) {
+      res.pipe(socket);
+      socket.destroy();
+    }
+  });
+  proxyReq.once('upgrade', (proxyRes, proxySocket) => {
+    socket.write(createHttpHeader('HTTP/1.1 101 Switching Protocols', proxyRes.headers));
+    proxySocket.pipe(socket);
+    socket.pipe(proxySocket);
+
+    socket.once('error', () => {
+      proxyReq.end();
     });
-  }
+
+    proxySocket.once('error', () => {
+      socket.end();
+    });
+  });
+
+  proxyReq.once('error', () => {
+    socket.end();
+  });
+  proxyReq.end();
 });
 
 module.exports = (port) => {
