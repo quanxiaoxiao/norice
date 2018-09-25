@@ -6,9 +6,6 @@ module.exports = (compiler, options) => {
   return async (ctx, next) => {
     const stream = new PassThrough();
     ctx.body = stream;
-    ctx.req.once('close', () => {
-      stream.end();
-    });
     await expressMiddleware(ctx.req, {
       write: (chunk) => {
         stream.push(chunk);
@@ -16,6 +13,9 @@ module.exports = (compiler, options) => {
       writeHead: (status, headers) => {
         ctx.status = status;
         ctx.set(headers);
+      },
+      end: () => {
+        stream.end();
       },
     }, next);
   };
