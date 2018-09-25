@@ -32,14 +32,14 @@ const mapType = {
   },
   function: fn => async (ctx) => {
     const ret = await fn(ctx);
-    const outgoing = getOutgoing(ret);
+    const outgoing = getOutgoing(ctx, ret);
     if (!outgoing) {
       ctx.throw(404);
     }
     ctx.body = stream(ctx, outgoing);
   },
   object: obj => (ctx) => {
-    const outgoing = getOutgoing(obj);
+    const outgoing = getOutgoing(ctx, obj);
     if (!outgoing) {
       ctx.throw(404);
     }
