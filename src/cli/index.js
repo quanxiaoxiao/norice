@@ -12,7 +12,7 @@ module.exports = () => {
     },
   })
     .version(pkg.version).alias('version', 'v');
-  require('./run')(argv);
+  require('../app')(argv.port);
 
   process.on('uncaughtException', (error) => {
     fs.writeFileSync(path.resolve(process.cwd(), 'error.log'), error.toString());

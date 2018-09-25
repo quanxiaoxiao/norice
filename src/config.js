@@ -37,7 +37,7 @@ module.exports = subject
       }
       console.log('generate api ...');
     }),
-    debounceTime(2000),
+    debounceTime(800),
     switchMap(() => bindNodeCallback(fs.readFile)(configPath, 'utf-8')),
     map((script) => {
       const mod = new Module(configPath, null);
