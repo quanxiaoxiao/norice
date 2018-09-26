@@ -15,21 +15,23 @@ module.exports = (ctx, options, emitError, setOutgoing = true) => {
   req.pipe(proxyReq)
     .once('response', (res) => {
       proxyRes = res;
-      if (setOutgoing) {
-        ctx.status = proxyRes.statusCode;
-        ctx.set(proxyRes.headers);
+      if (!ctx.res.finished) {
+        if (setOutgoing) {
+          ctx.status = proxyRes.statusCode;
+          ctx.set(proxyRes.headers);
+        }
+        proxyRes.pipe(passThrough);
       }
-      proxyRes.pipe(passThrough);
     })
     .once('error', (error) => {
-      ctx.status = 500;
+      console.log(error);
       if (proxyRes) {
         proxyRes.unpipe(passThrough);
       }
       if (emitError) {
         passThrough.emit('error', error);
-      } else if (!passThrough.destroyed) {
-        console.error(error);
+      } else if (!ctx.res.finished) {
+        ctx.status = 500;
         passThrough.end();
       }
     });

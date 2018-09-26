@@ -1,15 +1,12 @@
 const _ = require('lodash');
 
-const body = (obj) => {
+const body = obj => async (ctx) => {
   if (_.isFunction(obj)) {
-    return async (ctx) => {
-      const data = await obj(ctx);
-      ctx.body = data;
-    };
-  }
-  return async (ctx) => {
+    const data = await obj(ctx);
+    ctx.body = data;
+  } else {
     ctx.body = obj;
-  };
+  }
 };
 
 module.exports = body;

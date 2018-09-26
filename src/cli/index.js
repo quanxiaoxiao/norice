@@ -16,6 +16,7 @@ module.exports = () => {
 
   process.on('uncaughtException', (error) => {
     fs.writeFileSync(path.resolve(process.cwd(), 'error.log'), error.toString());
+    console.error(error.stack);
     const killTimer = setTimeout(() => {
       process.exit(1);
     }, 3000);
