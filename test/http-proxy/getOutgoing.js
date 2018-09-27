@@ -134,7 +134,6 @@ test('options is plainObject', (t) => {
     port: 80,
     method: 'GET',
     headers: {
-      'user-agent': 'quan',
       host: 'rice.cn',
     },
   });

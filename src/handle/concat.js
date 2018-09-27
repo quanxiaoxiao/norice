@@ -2,7 +2,7 @@ const fs = require('fs');
 const _ = require('lodash');
 const http = require('http');
 const getOutgoing = require('../http-proxy/getOutgoing');
-const { getFilePath } = require('../utils');
+const getFilePath = require('../utils/getFilePath');
 
 const proxyRequest = options => new Promise((resolve, reject) => {
   const outgoing = _.omit(_.omit(options, ['body']));

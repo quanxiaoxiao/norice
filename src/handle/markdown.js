@@ -1,7 +1,7 @@
 const fs = require('fs');
 const showdown = require('showdown');
 
-const { getFilePath } = require('../utils');
+const getFilePath = require('../utils/getFilePath');
 
 const converter = new showdown.Converter({
   tables: true,

@@ -2,7 +2,7 @@ const fp = require('lodash/fp');
 const _ = require('lodash');
 const path = require('path');
 const fs = require('fs');
-const { getFilePath } = require('../utils');
+const getFilePath = require('../utils/getFilePath');
 
 const mapType = {
   string: pathname => (ctx) => {
