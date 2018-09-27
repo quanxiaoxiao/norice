@@ -1,60 +1,79 @@
 const chalk = require('chalk');
 const _ = require('lodash');
 const handler = require('./handle');
-const { isSubset } = require('./set');
 
 const METHODS = ['GET', 'POST', 'DELETE', 'PUT', 'PATCH'];
 
 
 module.exports = api => Object.entries(api)
   .filter(([pathname, value]) => {
-    if (!/^\/.*/.test(pathname) || !_.isPlainObject(value) || _.isEmpty(pathname)) {
+    if (!/^\/.*/.test(pathname) || !_.isPlainObject(value) || _.isEmpty(value)) {
       console.error(chalk.red(`pathname: ${pathname} invalid`));
       return false;
     }
     return true;
   })
-  .map(([pathname, value]) => {
-    if (value.all != null) {
-      return [pathname, METHODS.reduce((acc, method) => ({
-        ...acc,
-        [method.toLowerCase()]: value.all,
-      }), {})];
-    }
-    return [pathname, value];
-  })
-  .reduce((acc, [pathname, value]) => {
-    if (isSubset(new Set(Object.keys(value)
-      .map(method => method.toUpperCase())), new Set(METHODS))) {
-      return [
-        ...acc,
-        ...Object.entries(value)
-          .map(([method, handle]) => ({
+  .map(([pathname, route]) => {
+    const routeKeys = Object.keys(route);
+    if (routeKeys.length >= 2) {
+      if (routeKeys.every(method => METHODS.includes(method.toUpperCase()))) {
+        return routeKeys.map((method) => {
+          const handlerName = Object.keys(route[method])[0];
+          return {
             pathname,
             method: method.toUpperCase(),
-            handle,
-          }))];
+            handlerName,
+            handlerValue: route[method][handlerName],
+          };
+        });
+      }
+      console.error(chalk.red(`pathname: ${pathname} invalid`));
+      return [];
     }
-    return [...acc, {
-      pathname,
-      method: 'GET',
-      handle: value,
-    }];
-  }, [])
+    if (routeKeys[0] === 'all') {
+      const handlerName = Object.keys(route.all)[0];
+      const handlerValue = route.all[handlerName];
+      return METHODS.map(method => ({
+        pathname,
+        method,
+        handlerName,
+        handlerValue,
+      }));
+    }
+    if (METHODS.includes(routeKeys[0].toUpperCase())) {
+      const handlerName = Object.keys(route[routeKeys[0]])[0];
+      const handlerValue = route[routeKeys[0]][handlerName];
+      return [{
+        pathname,
+        method: routeKeys[0].toUpperCase(),
+        handlerName,
+        handlerValue,
+      }];
+    }
+    if (handler[routeKeys[0]]) {
+      const handlerName = routeKeys[0];
+      const handlerValue = route[handlerName];
+      return [{
+        pathname,
+        method: 'GET',
+        handlerName,
+        handlerValue,
+      }];
+    }
+    console.error(chalk.red(`pathname: ${pathname} invalid`));
+    return [];
+  })
+  .reduce((acc, cur) => [...acc, ...cur], [])
   .filter((item) => {
-    if (!Object.keys(handler).some(handleName => item.handle[handleName] !== undefined)) {
-      console.error(chalk.red(`path: ${item.pathname}, method:${item.method} handle invalid`));
+    if (!item.handlerValue || !handler[item.handlerName]) {
+      console.error(chalk.red(`path: ${item.pathname}, method:${item.method}, handler: ${item.handlerName} invalid`));
       return false;
     }
     return true;
   })
-  .map((item) => {
-    const handleNames = Object.keys(handler);
-    const handleType = handleNames.find(handleName => item.handle[handleName] !== undefined);
-    return {
-      pathname: item.pathname,
-      method: item.method,
-      handleType,
-      handle: handler[handleType](item.handle[handleType]),
-    };
-  });
+  .map(item => ({
+    pathname: item.pathname,
+    method: item.method,
+    handlerName: item.handlerName,
+    handler: handler[item.handlerName](item.handlerValue),
+  }));

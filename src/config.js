@@ -58,7 +58,7 @@ module.exports = subject
       console.log('generate api list ---------------------------');
       const info = api.map(item => `${chalk.gray('pathname:')} ${item.pathname}, `
         + `${chalk.gray('method:')} ${chalk.bold(item.method.toUpperCase())}, `
-        + `${chalk.gray('type:')} ${item.type}`)
+        + `${chalk.gray('type:')} ${item.handlerName}`)
         .join('\n');
       console.log(info);
       console.log('---------------------------------------------');

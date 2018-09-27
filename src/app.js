@@ -32,12 +32,12 @@ config$.subscribe(({ api, middlewares, webpack: webpackConfig }) => {
   app.use(router.allowedMethods());
 
   api
-    .filter(item => !/^ws/.test(item.handleType))
-    .forEach(({ method, pathname, handle }) => {
-      router[method.toLowerCase()](pathname, handle);
+    .filter(item => !/^ws/.test(item.handlerName))
+    .forEach(({ method, pathname, handler }) => {
+      router[method.toLowerCase()](pathname, handler);
     });
 
-  wsRouteList = api.filter(item => /^ws/.test(item.handleType));
+  wsRouteList = api.filter(item => /^ws/.test(item.handlerName));
 
   router.get('/apis', (ctx) => {
     ctx.body = api.map(item => ({
@@ -78,7 +78,7 @@ server.on('upgrade', (req, socket) => {
   const { pathname } = url.parse(req.url);
   const upgrade = wsRouteList.find(item => item.pathname === pathname);
   if (upgrade) {
-    upgrade.handle(req, socket, server);
+    upgrade.handler(req, socket, server);
   } else {
     socket.destroy();
   }
