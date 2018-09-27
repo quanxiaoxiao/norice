@@ -5,7 +5,9 @@ const getOutgoing = require('../http-proxy/getOutgoing');
 const { getFilePath } = require('../utils');
 
 const proxyRequest = options => new Promise((resolve, reject) => {
-  const proxyReq = http.request(_.omit(options, ['body']));
+  const outgoing = _.omit(_.omit(options, ['body']));
+  console.log(`concat proxy: ${JSON.stringify(outgoing)}`);
+  const proxyReq = http.request(outgoing);
   proxyReq
     .once('response', (res) => {
       const buf = [];

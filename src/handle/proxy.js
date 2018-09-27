@@ -4,7 +4,7 @@ const getOutgoing = require('../http-proxy/getOutgoing');
 const stream = require('../http-proxy/stream');
 const stream2Promise = require('../utils/stream2Promise');
 
-const mapType = {
+const handlerType = {
   string: target => (ctx) => {
     const outgoing = getOutgoing(ctx, target);
     if (!outgoing) {
@@ -53,8 +53,8 @@ const proxy = (obj) => {
       ctx.throw(404);
     };
   }
-  const type = Array.isArray(obj) ? 'array' : typeof obj;
-  const handler = mapType[type];
+  const handlerName = Array.isArray(obj) ? 'array' : typeof obj;
+  const handler = handlerType[handlerName];
   if (!handler) {
     return (ctx) => {
       ctx.throw(404);
