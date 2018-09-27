@@ -1,9 +1,8 @@
 const chalk = require('chalk');
 const _ = require('lodash');
-const handler = require('./handle');
+const handler = require('./handler');
 
 const METHODS = ['GET', 'POST', 'DELETE', 'PUT', 'PATCH'];
-
 
 module.exports = api => Object.entries(api)
   .filter(([pathname, value]) => {
