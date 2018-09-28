@@ -1,3 +1,4 @@
+const koaCompose = require('koa-compose');
 const fs = require('fs');
 const _ = require('lodash');
 const http = require('http');
@@ -65,20 +66,32 @@ const handlerMap = {
   },
 };
 
-const concat = arr => async (ctx) => {
+const compose = arr => async (ctx) => {
   if (!Array.isArray(arr) || _.isEmpty(arr)) {
     ctx.trhow(404);
   }
   const last = _.last(arr);
-  const handlerList = arr.filter(handler => handler !== last);
-  const resultList = await Promise.all(handlerList.map(async (item) => {
-    const handlerName = Object.keys(item)[0];
-    const handlerValue = item[handlerName];
-    const ret = await handlerMap[handlerName](handlerValue, ctx);
-    return ret;
-  }));
-  const ret = await last(resultList, ctx);
-  ctx.body = ret;
+  const handlerList = arr
+    .filter(handler => handler !== last)
+    .map(item => async (context, next) => {
+      const handlerName = Object.keys(item)[0];
+      const handlerValue = item[handlerName];
+      const ret = await handlerMap[handlerName](handlerValue, ctx);
+      ctx.body = ret;
+      next();
+    });
+  const run = koaCompose(handlerList);
+  const body = await new Promise((resolve, reject) => {
+    run(ctx, async (context) => {
+      try {
+        const ret = await last(context);
+        resolve(ret);
+      } catch (error) {
+        reject(error);
+      }
+    });
+  });
+  return body;
 };
 
-module.exports = concat;
+module.exports = compose;

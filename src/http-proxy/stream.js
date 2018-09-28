@@ -2,18 +2,18 @@ const { PassThrough } = require('stream');
 const http = require('http');
 
 module.exports = (ctx, options, emitError, setOutgoing = true) => {
-  const passThrough = new PassThrough();
   if (!options || !options.hostname) {
     ctx.throw(404);
   }
   console.log(`proxy: ${JSON.stringify(options)}`);
+  const passThrough = new PassThrough();
   const { req } = ctx;
   const proxyReq = http.request(options);
 
   let proxyRes;
 
   req.pipe(proxyReq)
-    .once('response', (res) => {
+    .on('response', (res) => {
       proxyRes = res;
       if (!ctx.res.finished) {
         if (setOutgoing) {
@@ -22,8 +22,13 @@ module.exports = (ctx, options, emitError, setOutgoing = true) => {
         }
         proxyRes.pipe(passThrough);
       }
+      proxyRes.on('error', () => {
+        if (!ctx.res.finished) {
+          passThrough.end();
+        }
+      });
     })
-    .once('error', (error) => {
+    .on('error', (error) => {
       console.log(error);
       if (proxyRes) {
         proxyRes.unpipe(passThrough);
@@ -36,11 +41,11 @@ module.exports = (ctx, options, emitError, setOutgoing = true) => {
       }
     });
 
-  req.once('error', () => {
+  req.on('error', () => {
     proxyReq.abort();
   });
 
-  req.once('aborted', () => {
+  req.on('aborted', () => {
     proxyReq.abort();
   });
   return passThrough;
