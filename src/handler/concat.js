@@ -5,7 +5,7 @@ const getOutgoing = require('../http-proxy/getOutgoing');
 const getFilePath = require('../utils/getFilePath');
 
 const proxyRequest = options => new Promise((resolve, reject) => {
-  const outgoing = _.omit(_.omit(options, ['body']));
+  const outgoing = _.omit(options, ['body']);
   console.log(`concat proxy: ${JSON.stringify(outgoing)}`);
   const proxyReq = http.request(outgoing);
   proxyReq
@@ -14,7 +14,7 @@ const proxyRequest = options => new Promise((resolve, reject) => {
       let size = 0;
       const handleEnd = () => {
         if (res.statusCode !== 200) {
-          reject(Buffer.concat(buf, size));
+          reject(Buffer.concat(buf, size).toString());
         } else {
           resolve(Buffer.concat(buf, size));
         }
@@ -32,9 +32,15 @@ const proxyRequest = options => new Promise((resolve, reject) => {
       reject(error);
     });
   if (options.body != null) {
-    proxyReq.write(options.body);
+    if (options.body.pipe) {
+      options.body.pipe(proxyReq);
+    } else {
+      proxyReq.write(options.body);
+      proxyReq.end();
+    }
+  } else {
+    proxyReq.end();
   }
-  proxyReq.end();
 });
 
 const handlerMap = {
