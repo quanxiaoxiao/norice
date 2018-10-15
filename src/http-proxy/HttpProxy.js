@@ -81,7 +81,8 @@ class HttpProxy extends PassThrough {
 
   handleProxyReqResponse(proxyRes) {
     if (!this.ctx.res.finished) {
-      this.ctx.res.writeHead(proxyRes.statusCode, proxyRes.headers);
+      this.ctx.status = proxyRes.statusCode;
+      this.ctx.headers = proxyRes.headers;
       proxyRes.pipe(this);
     }
   }
