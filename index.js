@@ -8,6 +8,7 @@ const server = http.createServer((req, res) => {
     path: '/test',
     method: 'GET',
   });
+  aa.pipe(res);
 });
 
 server.listen(3001);

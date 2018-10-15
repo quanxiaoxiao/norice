@@ -1,45 +1,38 @@
 const _ = require('lodash');
+const { PassThrough } = require('stream');
 const http = require('http');
 const isStream = require('is-stream');
 
-class HttpProxy {
+class HttpProxy extends PassThrough {
   constructor(ctx, options = {}) {
-    this.statusCode = 200;
+    super();
     this.options = options;
-    this.isClose = false;
-    if (options.body) {
-      if (isStream(options.body)) {
-        this.incoming = options.body;
-      }
-    }
     this.ctx = ctx;
+    this.handleError = this.handleError.bind(this);
+    this.handleAborted = this.handleAborted.bind(this);
+    this.handleResEnd = this.handleResEnd.bind(this);
+    this.handleProxyReqError = this.handleProxyReqError.bind(this);
+    this.handleProxyReqResponse = this.handleProxyReqResponse.bind(this);
     this.attachResEvents();
     this.attachReqEvents();
-    this.connection();
+    process.nextTick(this.connection.bind(this));
   }
 
   connection() {
+    if (this.ctx.req.finished) {
+      return;
+    }
     const proxyReq = http.request(_.omit(this.options, ['body']));
 
     this.proxyReq = proxyReq;
 
-    proxyReq.on('error', (error) => {
-      if (error.CODE !== 'ECONNRESET') {
-        this.ctx.res.writeHead(500);
-        this.ctx.res.end();
-      }
-    });
+    proxyReq.on('error', this.handleProxyReqError);
 
-    proxyReq.on('response', (res) => {
-      this.ctx.res.writeHead(res.statusCode, res.headers);
-      this.proxyReq = proxyReq;
-      this.proxyRes = res;
-      this.attachProxyResEvents();
-    });
+    proxyReq.on('response', this.handleProxyReqResponse);
 
-    if (this.incoming && this.incoming.readable) {
-      this.incoming.pipe(proxyReq);
-    } else if (_.isString(this.options.body)) {
+    if (this.options.body && isStream(this.options.body)) {
+      this.options.body.pipe(proxyReq);
+    } else if (_.isString(this.options.body) || this.options.body instanceof Buffer) {
       proxyReq.write(this.options.body);
       proxyReq.end();
     } else {
@@ -49,38 +42,61 @@ class HttpProxy {
 
   attachResEvents() {
     const { res } = this.ctx;
-    res.on('error', () => {
-      console.log('-------------------------res error');
-    });
-    res.on('close', () => {
-      if (this.proxyReq) {
-        this.proxyReq.abort();
-      }
-    });
+    res.on('close', this.handleResEnd);
+    res.on('finished', this.handleResEnd);
+    res.on('error', this.handleError);
   }
 
   attachReqEvents() {
     const { req } = this.ctx;
-    req.on('error', () => {
-      console.log('-----------------req error');
-    });
-    req.on('aborted', () => {
-      if (this.proxyReq) {
-        this.proxyReq.abort();
-      }
-    });
+    req.on('error', this.handleError);
+    req.on('aborted', this.handleAborted);
   }
 
-  attachProxyResEvents() {
-    const { proxyRes, ctx: { res } } = this;
-    proxyRes.on('data', (chunk) => {
-      res.write(chunk);
-    });
+  handleAborted() {
+    if (this.proxyReq) {
+      this.proxyReq.abort();
+    }
+  }
 
-    proxyRes.on('end', () => {
-      console.log('proxyRes end');
-      res.end();
-    });
+  handleError() {
+    if (this.proxyReq) {
+      this.proxyReq.abort();
+    }
+  }
+
+  handleResEnd() {
+    if (this.proxyReq) {
+      this.proxyReq.abort();
+    }
+    this.cleanup();
+  }
+
+  handleProxyReqError() {
+    if (!this.ctx.res.finished) {
+      this.ctx.res.writeHead(500);
+      this.end();
+    }
+  }
+
+  handleProxyReqResponse(proxyRes) {
+    if (!this.ctx.res.finished) {
+      this.ctx.res.writeHead(proxyRes.statusCode, proxyRes.headers);
+      proxyRes.pipe(this);
+    }
+  }
+
+  cleanup() {
+    const { res, req } = this.ctx;
+    res.removeListener('close', this.handleResEnd);
+    res.removeListener('finished', this.handleResEnd);
+    res.removeListener('error', this.handleError);
+    req.removeListener('error', this.handleError);
+    req.removeListener('aborted', this.handleAborted);
+    if (this.proxyReq) {
+      this.proxyReq.removeListener('error', this.handleProxyReqError);
+      this.proxyReq.removeListener('response', this.handleProxyReqResponse);
+    }
   }
 }
 
