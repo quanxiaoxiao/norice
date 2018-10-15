@@ -38,6 +38,7 @@
   "dependencies": {
     "chalk": "^2.4.1",
     "concat-stream": "^1.6.2",
+    "is-stream": "^1.1.0",
     "koa": "^2.5.3",
     "koa-compose": "^4.1.0",
     "koa-logger": "^3.2.0",
@@ -45,6 +46,7 @@
     "lodash": "^4.17.11",
     "moment": "^2.22.2",
     "node-watch": "^0.5.8",
+    "on-finished": "^2.3.0",
     "request": "^2.88.0",
     "rxjs": "^6.3.3",
     "showdown": "^1.8.6",

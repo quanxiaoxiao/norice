@@ -1,36 +1,13 @@
-const { Readable } = require('stream');
+const http = require('http');
+const HttpProxy = require('./src/http-proxy/HttpProxy');
 
-const data = ['aaa', 'bbb', 'ccc', 'ddd'];
-
-const reader = new Readable({
-  read: () => {
-    setTimeout(() => {
-      const chunk = data.pop();
-      if (chunk) {
-        reader.push(chunk);
-      } else {
-        reader.emit('error', 'aaa');
-      }
-    }, 1000);
-  },
+const server = http.createServer((req, res) => {
+  const aa = new HttpProxy({ req, res }, {
+    hostname: '127.0.0.1',
+    port: 8088,
+    path: '/test',
+    method: 'GET',
+  });
 });
 
-reader.on('close', () => {
-  console.log('close');
-});
-
-reader.on('end', () => {
-  console.log('end');
-});
-
-reader.on('error', () => {
-  console.log('error');
-  reader.destroy();
-  setTimeout(() => {
-    console.log(reader._readableState);
-  }, 1000);
-});
-
-reader.on('data', (chunk) => {
-  console.log('data', chunk.toString());
-});
+server.listen(3001);
