@@ -1,7 +1,7 @@
 const fp = require('lodash/fp');
 const _ = require('lodash');
 const getOutgoing = require('../http-proxy/getOutgoing');
-const stream = require('../http-proxy/stream');
+const HttpProxy = require('../http-proxy/HttpProxy');
 const stream2Promise = require('../utils/stream2Promise');
 
 const handlerType = {
@@ -10,7 +10,7 @@ const handlerType = {
     if (!outgoing) {
       ctx.throw(404);
     }
-    ctx.body = stream(ctx, outgoing);
+    ctx.body = new HttpProxy(ctx, outgoing);
   },
   array: arr => async (ctx) => {
     const [first, ...other] = arr;
@@ -23,7 +23,7 @@ const handlerType = {
       ctx.throw(404);
     }
     try {
-      const buf = await stream2Promise(stream(ctx, outgoing, true, false));
+      const buf = await stream2Promise(new HttpProxy(ctx, outgoing, true, false));
       ctx.body = fp.compose(...other.reverse())(buf, ctx);
     } catch (error) {
       console.log(error);
@@ -36,14 +36,14 @@ const handlerType = {
     if (!outgoing) {
       ctx.throw(404);
     }
-    ctx.body = stream(ctx, outgoing);
+    ctx.body = new HttpProxy(ctx, outgoing);
   },
   object: obj => (ctx) => {
     const outgoing = getOutgoing(ctx, obj);
     if (!outgoing) {
       ctx.throw(404);
     }
-    ctx.body = stream(ctx, outgoing);
+    ctx.body = new HttpProxy(ctx, outgoing);
   },
 };
 

@@ -15,6 +15,7 @@ class HttpProxy extends PassThrough {
     this.handleProxyReqResponse = this.handleProxyReqResponse.bind(this);
     this.attachResEvents();
     this.attachReqEvents();
+    this.on('error', () => {});
     process.nextTick(this.connection.bind(this));
   }
 
@@ -36,7 +37,7 @@ class HttpProxy extends PassThrough {
       proxyReq.write(this.options.body);
       proxyReq.end();
     } else {
-      proxyReq.end();
+      this.ctx.req.pipe(proxyReq);
     }
   }
 
@@ -69,12 +70,11 @@ class HttpProxy extends PassThrough {
     if (this.proxyReq) {
       this.proxyReq.abort();
     }
-    this.cleanup();
   }
 
   handleProxyReqError() {
     if (!this.ctx.res.finished) {
-      this.ctx.res.writeHead(500);
+      this.ctx.status = 500;
       this.end();
     }
   }
@@ -82,21 +82,8 @@ class HttpProxy extends PassThrough {
   handleProxyReqResponse(proxyRes) {
     if (!this.ctx.res.finished) {
       this.ctx.status = proxyRes.statusCode;
-      this.ctx.headers = proxyRes.headers;
+      this.ctx.set(proxyRes.headers);
       proxyRes.pipe(this);
-    }
-  }
-
-  cleanup() {
-    const { res, req } = this.ctx;
-    res.removeListener('close', this.handleResEnd);
-    res.removeListener('finished', this.handleResEnd);
-    res.removeListener('error', this.handleError);
-    req.removeListener('error', this.handleError);
-    req.removeListener('aborted', this.handleAborted);
-    if (this.proxyReq) {
-      this.proxyReq.removeListener('error', this.handleProxyReqError);
-      this.proxyReq.removeListener('response', this.handleProxyReqResponse);
     }
   }
 }
