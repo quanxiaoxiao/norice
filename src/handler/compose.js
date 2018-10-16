@@ -1,42 +1,10 @@
 const koaCompose = require('koa-compose');
 const fs = require('fs');
 const _ = require('lodash');
-const http = require('http');
 const getOutgoing = require('../http-proxy/getOutgoing');
+const HttpProxy = require('../http-proxy/HttpProxy');
+const stream2Promise = require('../utils/stream2Promise');
 const getFilePath = require('../utils/getFilePath');
-
-const proxyRequest = options => new Promise((resolve, reject) => {
-  const outgoing = _.omit(_.omit(options, ['body']));
-  console.log(`concat proxy: ${JSON.stringify(outgoing)}`);
-  const proxyReq = http.request(outgoing);
-  proxyReq
-    .once('response', (res) => {
-      const buf = [];
-      let size = 0;
-      const handleEnd = () => {
-        if (res.statusCode !== 200) {
-          reject(Buffer.concat(buf, size));
-        } else {
-          resolve(Buffer.concat(buf, size));
-        }
-      };
-      res.once('end', handleEnd);
-      res.once('error', () => {
-        res.off('end', handleEnd);
-      });
-      res.on('data', (chunk) => {
-        size += chunk.length;
-        buf.push(chunk);
-      });
-    })
-    .once('error', (error) => {
-      reject(error);
-    });
-  if (options.body != null) {
-    proxyReq.write(options.body);
-  }
-  proxyReq.end();
-});
 
 const handlerMap = {
   file: async (pathname, ctx) => {
@@ -56,7 +24,10 @@ const handlerMap = {
     if (!outgoing) {
       return Promise.reject();
     }
-    return proxyRequest(outgoing);
+    return stream2Promise(new HttpProxy({
+      ...outgoing,
+      body: outgoing.body || null,
+    }));
   },
   body: async (body, ctx) => {
     if (_.isFunction(body)) {

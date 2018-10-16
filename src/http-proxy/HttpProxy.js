@@ -23,7 +23,9 @@ class HttpProxy extends PassThrough {
     if (this.ctx.req.finished) {
       return;
     }
-    const proxyReq = http.request(_.omit(this.options, ['body']));
+    const options = _.omit(this.options, ['body']);
+    console.log(`proxy: ${JSON.stringify(options)}`);
+    const proxyReq = http.request(options);
 
     this.proxyReq = proxyReq;
 
@@ -35,6 +37,8 @@ class HttpProxy extends PassThrough {
       this.options.body.pipe(proxyReq);
     } else if (_.isString(this.options.body) || this.options.body instanceof Buffer) {
       proxyReq.write(this.options.body);
+      proxyReq.end();
+    } else if (this.options.body === null) {
       proxyReq.end();
     } else {
       this.ctx.req.pipe(proxyReq);
@@ -60,7 +64,8 @@ class HttpProxy extends PassThrough {
     }
   }
 
-  handleError() {
+  handleError(error) {
+    console.error(error);
     if (this.proxyReq) {
       this.proxyReq.abort();
     }
@@ -72,7 +77,8 @@ class HttpProxy extends PassThrough {
     }
   }
 
-  handleProxyReqError() {
+  handleProxyReqError(error) {
+    console.error(error);
     if (!this.ctx.res.finished) {
       this.ctx.status = 500;
       this.end();
