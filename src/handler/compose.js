@@ -24,7 +24,7 @@ const handlerMap = {
     if (!outgoing) {
       return Promise.reject();
     }
-    return stream2Promise(new HttpProxy({
+    return stream2Promise(new HttpProxy(ctx, {
       ...outgoing,
       body: outgoing.body || null,
     }));
