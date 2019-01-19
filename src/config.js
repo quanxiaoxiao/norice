@@ -1,7 +1,7 @@
 const path = require('path');
 const {
-  Subject,
   bindNodeCallback,
+  Subject,
 } = require('rxjs');
 const { Module } = require('module');
 const fs = require('fs');
@@ -9,8 +9,10 @@ const {
   tap,
   debounceTime,
   map,
-  catchError,
   switchMap,
+  scan,
+  retryWhen,
+  share,
 } = require('rxjs/operators');
 const watch = require('node-watch');
 const chalk = require('chalk');
@@ -19,36 +21,39 @@ const apiParser = require('./apiParser');
 const configFile = 'norice.config.js';
 const configDir = process.cwd();
 const configPath = path.join(configDir, configFile);
-const configWatch = watch(configPath);
-const subject = new Subject();
 
-let prevModule;
+const subject = new Subject().pipe(share());
+
+watch(configPath)
+  .on('change', () => {
+    subject.next();
+  });
 
 module.exports = subject
   .pipe(
     tap(() => {
-      if (prevModule) {
-        prevModule.children.forEach((item) => {
+      console.log('generate api ...');
+    }),
+    debounceTime(1200),
+    switchMap(() => bindNodeCallback(fs.readFile)(configPath, 'utf-8')),
+    scan((prevConfigModule, script) => {
+      if (prevConfigModule) {
+        prevConfigModule.children.forEach((item) => {
           if (!/^webpack\./.test(path.basename(item.filename))) {
             delete require.cache[item.id];
           }
         });
-        delete require.cache[prevModule.id];
+        delete require.cache[prevConfigModule.id];
       }
-      console.log('generate api ...');
-    }),
-    debounceTime(800),
-    switchMap(() => bindNodeCallback(fs.readFile)(configPath, 'utf-8')),
-    map((script) => {
-      const mod = new Module(configPath, null);
-      mod.paths = Module._nodeModulePaths(configDir);
-      if (!mod.filename) {
-        mod.filename = configPath;
+      const newConfigModule = new Module(configPath, null);
+      newConfigModule.paths = Module._nodeModulePaths(configDir);
+      if (!newConfigModule.filename) {
+        newConfigModule.filename = configPath;
       }
-      mod._compile(script, configPath);
-      prevModule = mod;
-      return mod.exports;
-    }),
+      newConfigModule._compile(script, configPath);
+      return newConfigModule;
+    }, null),
+    map(configModule => configModule.exports),
     map(({ api = {}, middlewares = [], webpack }) => ({
       middlewares,
       webpack,
@@ -63,16 +68,12 @@ module.exports = subject
       console.log(info);
       console.log('---------------------------------------------');
     }),
-    catchError((error, source$) => {
-      console.log(error);
-      return source$;
-    }),
+    retryWhen(errors => errors.pipe(
+      tap((error) => {
+        console.error(error);
+      }),
+    )),
   );
-
-
-configWatch.on('change', () => {
-  subject.next();
-});
 
 setTimeout(() => {
   subject.next();

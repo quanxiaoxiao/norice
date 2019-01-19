@@ -18,60 +18,62 @@ const webpackMiddlewares = [];
 
 let wsRouteList = [];
 
-config$.subscribe(({ api, middlewares, webpack: webpackConfig }) => {
-  while (app.middleware.length) {
-    app.middleware.pop();
-  }
-  app.use(logger);
-  middlewares.forEach((middleware) => {
-    app.use(middleware);
-  });
-  const router = new Router();
-
-  app.use(router.routes());
-  app.use(router.allowedMethods());
-
-  api
-    .filter(item => !/^ws/.test(item.handlerName))
-    .forEach(({ method, pathname, handler }) => {
-      router[method.toLowerCase()](pathname, handler);
-    });
-
-  wsRouteList = api.filter(item => /^ws/.test(item.handlerName));
-
-  router.get('/apis', (ctx) => {
-    ctx.body = api.map(item => ({
-      pathname: item.pathname,
-      method: item.method,
-    }));
-  });
-
-  if (webpackConfig) {
-    if (!compiler) {
-      compiler = webpack(webpackConfig);
-      webpackMiddlewares.push(devMiddleware(compiler, {
-        publicPath: webpackConfig.output.publicPath,
-        hot: true,
-      }));
-      webpackMiddlewares.push(hotMiddleware(compiler));
-      webpackMiddlewares.push(async (ctx) => {
-        const indexHtml = await new Promise((resolve, reject) => {
-          compiler.outputFileSystem.readFile(path.resolve(webpackConfig.output.path, 'index.html'), (err, indexHtmlTemplate) => {
-            if (err) {
-              reject(err);
-            } else {
-              resolve(indexHtmlTemplate);
-            }
-          });
-        });
-        ctx.type = 'text/html';
-        ctx.body = indexHtml;
-      });
+config$.subscribe({
+  next: ({ api, middlewares, webpack: webpackConfig }) => {
+    while (app.middleware.length) {
+      app.middleware.pop();
     }
-    webpackMiddlewares.forEach((middleware) => {
+    app.use(logger);
+    middlewares.forEach((middleware) => {
       app.use(middleware);
     });
-  }
+    const router = new Router();
+
+    api
+      .filter(item => !/^ws/.test(item.handlerName))
+      .forEach(({ method, pathname, handler }) => {
+        router[method.toLowerCase()](pathname, handler);
+      });
+
+    wsRouteList = api.filter(item => /^ws/.test(item.handlerName));
+
+    router.get('/apis', (ctx) => {
+      ctx.body = api.map(item => ({
+        pathname: item.pathname,
+        method: item.method,
+      }));
+    });
+
+    app.use(router.routes());
+    app.use(router.allowedMethods());
+
+    if (webpackConfig) {
+      if (!compiler) {
+        compiler = webpack(webpackConfig);
+        webpackMiddlewares.push(devMiddleware(compiler, {
+          publicPath: webpackConfig.output.publicPath,
+          hot: true,
+        }));
+        webpackMiddlewares.push(hotMiddleware(compiler));
+        webpackMiddlewares.push(async (ctx) => {
+          const indexHtml = await new Promise((resolve, reject) => {
+            compiler.outputFileSystem.readFile(path.resolve(webpackConfig.output.path, 'index.html'), (err, indexHtmlTemplate) => {
+              if (err) {
+                reject(err);
+              } else {
+                resolve(indexHtmlTemplate);
+              }
+            });
+          });
+          ctx.type = 'text/html';
+          ctx.body = indexHtml;
+        });
+      }
+      webpackMiddlewares.forEach((middleware) => {
+        app.use(middleware);
+      });
+    }
+  },
 });
 
 server.on('upgrade', (req, socket) => {
