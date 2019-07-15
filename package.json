@@ -25,7 +25,7 @@
     "test": "ava test"
   },
   "devDependencies": {
-    "ava": "^0.25.0"
+    "ava": "^2.2.0"
   },
   "repository": {
     "type": "git",
@@ -38,20 +38,20 @@
   "dependencies": {
     "chalk": "^2.4.2",
     "concat-stream": "^2.0.0",
-    "is-stream": "^1.1.0",
+    "is-stream": "^2.0.0",
     "koa": "^2.7.0",
     "koa-compose": "^4.1.0",
     "koa-logger": "^3.2.0",
     "koa-router": "^7.4.0",
-    "lodash": "^4.17.11",
+    "lodash": "^4.17.14",
     "moment": "^2.24.0",
     "node-watch": "^0.6.2",
     "on-finished": "^2.3.0",
-    "rxjs": "^6.5.1",
+    "rxjs": "^6.5.2",
     "through2": "^3.0.1",
-    "webpack": "^4.30.0",
-    "webpack-dev-middleware": "^3.6.2",
-    "webpack-hot-middleware": "^2.24.3",
-    "yargs": "^13.2.2"
+    "webpack": "^4.35.3",
+    "webpack-dev-middleware": "^3.7.0",
+    "webpack-hot-middleware": "^2.25.0",
+    "yargs": "^13.2.4"
   }
 }
