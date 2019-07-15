@@ -1,9 +1,8 @@
 const _ = require('lodash');
-const httpForward = require('../httpForward');
 
 const body = obj => async (ctx) => {
   if (_.isFunction(obj)) {
-    const data = await obj(ctx, httpForward);
+    const data = await obj(ctx);
     ctx.body = data;
   } else {
     ctx.body = obj;
