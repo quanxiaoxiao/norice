@@ -1,5 +1,6 @@
-const getOutgoing = require('../http-proxy/getOutgoing');
-const HttpProxy = require('../http-proxy/HttpProxy');
+const { PassThrough } = require('stream');
+const getOutgoing = require('../getOutgoing');
+const forward = require('../httpForward');
 
 const handlerType = {
   string: target => (ctx) => {
@@ -7,7 +8,20 @@ const handlerType = {
     if (!outgoing) {
       ctx.throw(404);
     }
-    ctx.body = new HttpProxy(ctx, outgoing);
+    const passThrough = new PassThrough();
+    passThrough.writeHead = (statusCode, headers) => {
+      ctx.status = statusCode;
+      Object
+        .keys(headers)
+        .forEach((key) => {
+          ctx.set(key, headers[key]);
+        });
+    };
+    forward({
+      ...outgoing,
+      body: ctx.req,
+    }, ctx.req.socket, passThrough);
+    ctx.body = passThrough;
   },
   function: fn => async (ctx) => {
     const ret = await fn(ctx);
@@ -15,14 +29,34 @@ const handlerType = {
     if (!outgoing) {
       ctx.throw(404);
     }
-    ctx.body = new HttpProxy(ctx, outgoing);
+    const passThrough = new PassThrough();
+    passThrough.writeHead = (statusCode, headers) => {
+      ctx.status = statusCode;
+      Object
+        .keys(headers)
+        .forEach((key) => {
+          ctx.set(key, headers[key]);
+        });
+    };
+    forward(outgoing, ctx.req.socket, passThrough);
+    ctx.body = passThrough;
   },
   object: obj => (ctx) => {
     const outgoing = getOutgoing(ctx, obj);
     if (!outgoing) {
       ctx.throw(404);
     }
-    ctx.body = new HttpProxy(ctx, outgoing);
+    const passThrough = new PassThrough();
+    passThrough.writeHead = (statusCode, headers) => {
+      ctx.status = statusCode;
+      Object
+        .keys(headers)
+        .forEach((key) => {
+          ctx.set(key, headers[key]);
+        });
+    };
+    forward(outgoing, ctx.req.socket, passThrough);
+    ctx.body = passThrough;
   },
 };
 

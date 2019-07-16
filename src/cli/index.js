@@ -12,6 +12,7 @@ module.exports = () => {
     },
   })
     .version(pkg.version).alias('version', 'v');
+
   require('../app')(argv.port);
 
   process.on('uncaughtException', (error) => {
