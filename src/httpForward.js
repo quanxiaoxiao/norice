@@ -13,13 +13,34 @@ const httpForward = (
   const state = {
     isClose: false,
     isConnect: false,
+    sendHeader: false,
   };
 
   const connect = httpConnect(
     options,
     onData,
     onResponse,
+    onError,
   );
+
+  function onError(error) {
+    if (state.isClose) {
+      return;
+    }
+    state.isConnect = false;
+    if (isConcatData) {
+      res(error);
+    } else {
+      console.log(error);
+      if (!state.sendHeader) {
+        res.writeHead(502, {});
+        state.sendHeader = true;
+      }
+      res.end();
+      state.isClose = true;
+    }
+    cleanup();
+  }
 
   function onResponse(ret) {
     if (state.isClose) {
@@ -39,23 +60,15 @@ const httpForward = (
       } else {
         res.writeHead(ret.statusCode, ret.headers);
       }
+      state.sendHeader = true;
     } else {
       res.writeHead(ret.statusCode, ret.headers);
+      state.sendHeader = true;
     }
   }
 
-  function onData(error, chunk) {
+  function onData(chunk) {
     if (!state.isConnect || state.isClose) {
-      return;
-    }
-    if (error) {
-      state.isConnect = false;
-      if (isConcatData) {
-        res(error);
-      } else {
-        res.destroy();
-      }
-      cleanup();
       return;
     }
     if (chunk == null) {
@@ -64,6 +77,7 @@ const httpForward = (
         res(null, Buffer.concat(bufList));
       } else {
         res.end();
+        state.isClose = true;
       }
       cleanup();
       return;
@@ -96,6 +110,9 @@ const httpForward = (
 
   function cleanup() {
     if (!state.isClose) {
+      if (!isConcatData) {
+        res.end();
+      }
       state.isClose = true;
     }
     if (state.isConnect) {

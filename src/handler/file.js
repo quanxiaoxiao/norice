@@ -3,35 +3,27 @@ const path = require('path');
 const fs = require('fs');
 const getFilePath = require('../utils/getFilePath');
 
-const mapType = {
-  string: pathname => (ctx) => {
-    ctx.type = path.extname(pathname);
-    ctx.body = fs.createReadStream(getFilePath(pathname));
-  },
-  function: fn => async (ctx) => {
-    const pathname = await fn(ctx);
-    if (!_.isString(pathname)) {
-      ctx.trhow(500);
-    }
-    ctx.type = path.extname(pathname);
-    ctx.body = fs.createReadStream(getFilePath(pathname));
-  },
-};
-
-const file = (obj) => {
-  if (obj == null) {
+const file = (handle) => {
+  const type = typeof handle;
+  if (type === 'string') {
     return (ctx) => {
-      ctx.throw(404);
+      ctx.type = path.extname(handle);
+      ctx.body = fs.createReadStream(getFilePath(handle));
     };
   }
-  const type = Array.isArray(obj) ? 'array' : typeof obj;
-  const handler = mapType[type];
-  if (!handler) {
-    return (ctx) => {
-      ctx.throw(404);
+  if (type === 'function') {
+    return async (ctx) => {
+      const pathname = await handle(ctx);
+      if (!_.isString(pathname)) {
+        ctx.trhow(500);
+      }
+      ctx.type = path.extname(pathname);
+      ctx.body = fs.createReadStream(getFilePath(pathname));
     };
   }
-  return handler(obj);
+  return (ctx) => {
+    ctx.throw(500);
+  };
 };
 
 module.exports = file;

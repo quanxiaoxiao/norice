@@ -1,23 +1,25 @@
 /* eslint no-use-before-define: 0 */
+const http = require('http');
 
 const httpConnect = (
   options,
   onData,
   onResponse,
+  onError,
 ) => {
   const state = {
     isConnect: true,
     isClose: false,
   };
 
-  const { schema, body, ...other } = options;
+  const { schema = http, body, ...other } = options;
 
   let proxySocket = null;
   let proxyRes = null;
 
   function handleErrorOnProxyReq(error) {
     if (state.isConnect) {
-      onData(error);
+      onError(error);
       state.isConnect = false;
     }
     cleanup();
@@ -33,7 +35,7 @@ const httpConnect = (
 
   function handleDataOnProxyRes(chunk) {
     if (state.isConnect) {
-      onData(null, chunk);
+      onData(chunk);
     }
   }
 
@@ -53,7 +55,7 @@ const httpConnect = (
 
   function handleErrorOnProxySocket(error) {
     if (state.isConnect) {
-      onData(error);
+      onError(error);
       state.isConnect = false;
     }
     cleanup();
@@ -67,19 +69,11 @@ const httpConnect = (
     cleanup();
   }
 
-  function handleTimeOUtOnProxySocket() {
-    if (state.isConnect) {
-      onData();
-      state.isConnect = false;
-    }
-    cleanup();
-  }
 
   function handleSocketOnProxyReq(socket) {
     proxySocket = socket;
     proxySocket.on('close', handleCloseOnProxySocket);
     proxySocket.on('end', handleCloseOnProxySocket);
-    proxySocket.on('timeout', handleTimeOUtOnProxySocket);
     proxySocket.on('error', handleErrorOnProxySocket);
   }
 
@@ -111,7 +105,7 @@ const httpConnect = (
     proxyReq.on('socket', handleSocketOnProxyReq);
     proxyReq.on('response', handleResponseOnProxyReq);
 
-    if (body === null) {
+    if (body == null) {
       proxyReq.end();
     } else if (body && body.pipe) {
       body.pipe(proxyReq);
@@ -136,7 +130,6 @@ const httpConnect = (
       proxyRes.off('end', handleCloseOnProxyRes);
     }
     if (proxySocket) {
-      proxySocket.off('timeout', handleTimeOUtOnProxySocket);
       proxySocket.off('end', handleCloseOnProxySocket);
       proxySocket.off('close', handleCloseOnProxySocket);
       proxySocket.destroy();
