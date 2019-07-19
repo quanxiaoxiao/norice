@@ -75,11 +75,12 @@ const httpForward = (
       state.isConnect = false;
       if (isConcatData) {
         res(null, Buffer.concat(bufList));
-      } else {
+        cleanup();
+      } else if (!res.isPaused()) {
         res.end();
         state.isClose = true;
+        cleanup();
       }
-      cleanup();
       return;
     }
 
@@ -100,7 +101,16 @@ const httpForward = (
   }
 
   function handleDrainOnRes() {
-    connect.resume();
+    if (state.isClose) {
+      return;
+    }
+    if (state.isConnect) {
+      connect.resume();
+    } else {
+      res.end();
+      state.isClose = true;
+      cleanup();
+    }
   }
 
   socket.on('close', handleCloseOnSocket);
