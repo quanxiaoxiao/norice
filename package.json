@@ -38,15 +38,15 @@
   "dependencies": {
     "chalk": "^2.4.2",
     "koa": "^2.7.0",
-    "koa-logger": "^3.2.0",
+    "koa-logger": "^3.2.1",
     "koa-router": "^7.4.0",
-    "lodash": "^4.17.14",
+    "lodash": "^4.17.15",
     "moment": "^2.24.0",
     "node-watch": "^0.6.2",
     "rxjs": "^6.5.2",
-    "webpack": "^4.35.3",
+    "webpack": "^4.36.1",
     "webpack-dev-middleware": "^3.7.0",
     "webpack-hot-middleware": "^2.25.0",
-    "yargs": "^13.2.4"
+    "yargs": "^13.3.0"
   }
 }

@@ -55,7 +55,15 @@ const httpConnect = (
 
   function handleErrorOnProxySocket(error) {
     if (state.isConnect) {
-      onError(error || new Error('socket error'));
+      onError(error);
+      state.isConnect = false;
+    }
+    cleanup();
+  }
+
+  function handleCloseOnProxySocket() {
+    if (state.isConnect) {
+      onData();
       state.isConnect = false;
     }
     cleanup();
@@ -64,7 +72,7 @@ const httpConnect = (
 
   function handleSocketOnProxyReq(socket) {
     proxySocket = socket;
-    proxySocket.on('close', handleErrorOnProxySocket);
+    proxySocket.on('close', handleCloseOnProxySocket);
     proxySocket.on('error', handleErrorOnProxySocket);
   }
 
@@ -116,13 +124,15 @@ const httpConnect = (
       onData();
       state.isConnect = false;
     }
+    if (proxySocket) {
+      proxySocket.off('close', handleCloseOnProxySocket);
+    }
     if (proxyRes) {
       proxyRes.off('data', handleDataOnProxyRes);
       proxyRes.off('close', handleCloseOnProxyRes);
       proxyRes.off('end', handleCloseOnProxyRes);
     }
     if (proxySocket) {
-      proxySocket.off('close', handleErrorOnProxySocket);
       proxySocket.off('error', handleErrorOnProxySocket);
     }
     proxyReq.off('error', handleErrorOnProxyReq);
