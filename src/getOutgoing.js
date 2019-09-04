@@ -4,7 +4,7 @@ const https = require('https');
 const _ = require('lodash');
 
 module.exports = (ctx, options) => {
-  if (options == null) {
+  if (_.isEmpty(options)) {
     return null;
   }
 
@@ -26,7 +26,7 @@ module.exports = (ctx, options) => {
     pathname,
   } = url.parse(target);
   let path;
-  if (pathname === '/') {
+  if (pathname === '/' || !pathname) {
     path = ctx.originalUrl;
   } else {
     path = `${pathname}?${query || ctx.querystring}`;
@@ -35,7 +35,7 @@ module.exports = (ctx, options) => {
     schema: /^https/.test(target) ? https : http,
     hostname,
     path,
-    port: parseInt(port, 10) || 80,
+    port: parseInt(port, 10) || (/^https/.test(target) ? 443 : 80),
     method: ctx.method,
     headers: _.omit(ctx.headers, ['host']),
     ...options,

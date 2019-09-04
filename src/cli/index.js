@@ -4,19 +4,44 @@ const path = require('path');
 const pkg = require('../../package.json');
 
 module.exports = () => {
-  const { argv } = yargs.options({
-    port: {
-      alias: 'p',
-      description: 'Set port',
-      default: 3000,
-    },
-  })
-    .version(pkg.version).alias('version', 'v');
-
-  require('../app')(argv.port);
+  yargs // eslint-disable-line
+    .command(
+      'server',
+      'startup http server',
+      y => y.option('port', {
+        alias: 'p',
+        description: 'listen port default is 3000',
+        default: 3000,
+      }),
+      (argv) => {
+        require('../app')(argv.port);
+      },
+    )
+    .options({
+      port: {
+        alias: 'p',
+        description: 'Set port',
+        default: 3000,
+      },
+    })
+    .command(
+      'deploy',
+      'deploy static file to server',
+      y => y.option('config', {
+        alias: 'c',
+        description: 'config file path default is norice.config.js',
+        default: 'norice.config.js',
+      }),
+      (argv) => {
+        require('../deploy')(argv.config);
+      },
+    )
+    .version(pkg.version)
+    .alias('version', 'v')
+    .argv;
 
   process.on('uncaughtException', (error) => {
-    fs.writeFileSync(path.resolve(process.cwd(), 'error.log'), error.toString());
+    fs.writeFileSync(path.resolve(process.cwd(), 'error.log'), error.message);
     console.error(error.stack);
     const killTimer = setTimeout(() => {
       process.exit(1);

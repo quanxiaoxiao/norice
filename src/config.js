@@ -54,7 +54,7 @@ module.exports = subject
       return newConfigModule;
     }, null),
     map(configModule => configModule.exports),
-    map(({ api = {}, middlewares = [], webpack }) => ({
+    map(({ api = {}, middlewares = [], webpackDev: webpack }) => ({
       middlewares,
       webpack,
       api: apiParser(api),

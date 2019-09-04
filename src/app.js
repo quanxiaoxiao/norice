@@ -1,5 +1,4 @@
 const Koa = require('koa');
-const Router = require('koa-router');
 const http = require('http');
 const url = require('url');
 const path = require('path');
@@ -27,25 +26,20 @@ config$.subscribe({
     middlewares.forEach((middleware) => {
       app.use(middleware);
     });
-    const router = new Router();
 
-    api
-      .filter(item => !/^ws/.test(item.handlerName))
-      .forEach(({ method, pathname, handler }) => {
-        router[method.toLowerCase()](pathname, handler);
-      });
-
-    wsRouteList = api.filter(item => /^ws/.test(item.handlerName));
-
-    router.get('/apis', (ctx) => {
-      ctx.body = api.map(item => ({
-        pathname: item.pathname,
-        method: item.method,
-      }));
+    app.use(async (ctx, next) => {
+      const routerItem = api.find(item => item.method === ctx.method
+        && item.handlerName !== 'wsProxy'
+        && item.regexp.exec(ctx.path));
+      if (!routerItem) {
+        await next();
+        return;
+      }
+      ctx.matchs = routerItem.regexp.exec(ctx.path);
+      await routerItem.handler(ctx, next);
     });
 
-    app.use(router.routes());
-    app.use(router.allowedMethods());
+    wsRouteList = api.filter(item => item.handlerName === 'wsProxy');
 
     if (webpackConfig) {
       if (!compiler) {
@@ -78,10 +72,14 @@ config$.subscribe({
 
 server.on('upgrade', (req, socket) => {
   const { pathname } = url.parse(req.url);
-  const upgrade = wsRouteList.find(item => item.pathname === pathname);
+  const upgrade = wsRouteList.find(item => item.handlerName === 'wsProxy'
+    && item.method === 'GET'
+    && item.regexp.exec(pathname));
   if (upgrade) {
+    console.log('websocket connection:', socket.remoteAddress);
     upgrade.handler(req, socket, server);
   } else {
+    console.log('websocket deny:', socket.remoteAddress);
     socket.destroy();
   }
 });
