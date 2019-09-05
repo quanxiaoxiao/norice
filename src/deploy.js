@@ -1,6 +1,8 @@
 const path = require('path');
 const fs = require('fs');
 const http = require('http');
+const https = require('https');
+const url = require('url');
 const { Module } = require('module');
 const shelljs = require('shelljs');
 const { spawn } = require('child_process');
@@ -15,6 +17,9 @@ module.exports = (configName) => {
   const script = fs.readFileSync(configPathName, 'utf-8');
   mod._compile(script, configPathName);
   const { exports: config } = mod;
+  if (!config.deploy.url || !/^https?:\/\/.+/.test(config.deploy.url)) {
+    throw new Error('deploy url invalid');
+  }
   const { webpackProd: webpackConfig } = config;
   const webpack = mod.require('webpack');
   const compiler = webpack(webpackConfig, (error, stats) => {
@@ -36,16 +41,24 @@ module.exports = (configName) => {
     });
     tar.once('close', () => {
       shelljs.rm('-r', webpackConfig.output.path);
-      const req = http.request({
-        hostname: config.deploy.hostname,
-        port: config.deploy.port,
-        path: config.deploy.path,
-        headers: {
-          'x-basename': path.basename(webpackConfig.output.path),
-          ...config.deploy.headers,
-        },
-        method: 'POST',
-      });
+      const {
+        hostname,
+        port,
+        query,
+        pathname,
+        protocol,
+      } = url.parse(config.deploy.url);
+      const req = (protocol === 'https:' ? https : http)
+        .request({
+          hostname,
+          port: parseInt(port, 10) || (protocol === 'https:' ? 443 : 80),
+          path: `${pathname}${query ? `?${query}` : ''}`,
+          headers: {
+            'x-basename': path.basename(webpackConfig.output.path),
+            ...config.deploy.headers,
+          },
+          method: 'POST',
+        });
       req.on('response', (res) => {
         if (res.statusCode !== 200) {
           console.error(`statusCode: ${res.statusCode} deploy fail`);

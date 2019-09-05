@@ -1,6 +1,6 @@
 {
   "name": "norice",
-  "version": "1.5.12",
+  "version": "1.6.12",
   "main": "bin/norice",
   "license": "MIT",
   "engines": {
@@ -20,13 +20,7 @@
   "bin": {
     "norice": "./bin/norice"
   },
-  "scripts": {
-    "lint": "eslint src",
-    "test": "ava test"
-  },
-  "devDependencies": {
-    "ava": "^2.3.0"
-  },
+  "devDependencies": {},
   "repository": {
     "type": "git",
     "url": "git://github.com/quanxiaoxiao/norice.git"
@@ -44,10 +38,10 @@
     "moment": "^2.24.0",
     "node-watch": "^0.6.3",
     "path-to-regexp": "^3.1.0",
-    "rxjs": "^6.5.2",
+    "rxjs": "^6.5.3",
     "shelljs": "^0.8.3",
     "webpack": "^4.39.3",
-    "webpack-dev-middleware": "^3.7.0",
+    "webpack-dev-middleware": "^3.7.1",
     "webpack-hot-middleware": "^2.25.0",
     "yargs": "^14.0.0"
   }

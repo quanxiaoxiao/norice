@@ -14,7 +14,6 @@ const httpConnect = (
 
   const { schema = http, body, ...other } = options;
 
-  let proxySocket = null;
   let proxyRes = null;
 
   function handleErrorOnProxyReq(error) {
@@ -40,6 +39,7 @@ const httpConnect = (
   }
 
   function handleResponseOnProxyReq(res) {
+    proxyReq.off('response', handleResponseOnProxyReq);
     if (!state.isClose && state.isConnect) {
       proxyRes = res;
       onResponse({
@@ -50,30 +50,6 @@ const httpConnect = (
       proxyRes.on('end', handleCloseOnProxyRes);
       proxyRes.on('close', handleCloseOnProxyRes);
     }
-  }
-
-
-  function handleErrorOnProxySocket(error) {
-    if (state.isConnect) {
-      onError(error);
-      state.isConnect = false;
-    }
-    cleanup();
-  }
-
-  function handleCloseOnProxySocket() {
-    if (state.isConnect) {
-      onData();
-      state.isConnect = false;
-    }
-    cleanup();
-  }
-
-
-  function handleSocketOnProxyReq(socket) {
-    proxySocket = socket;
-    proxySocket.on('close', handleCloseOnProxySocket);
-    proxySocket.on('error', handleErrorOnProxySocket);
   }
 
   const proxyReq = schema.request(other);
@@ -102,7 +78,6 @@ const httpConnect = (
   };
 
   if (!state.isClose) {
-    proxyReq.on('socket', handleSocketOnProxyReq);
     proxyReq.on('response', handleResponseOnProxyReq);
 
     if (body == null) {
@@ -111,12 +86,13 @@ const httpConnect = (
       body.pipe(proxyReq);
     } else if (typeof body === 'string' || Buffer.isBuffer(body)) {
       proxyReq.end(body);
+    } else {
+      proxyReq.end();
     }
   }
 
   function cleanup() {
     proxyReq.off('response', handleResponseOnProxyReq);
-    proxyReq.off('socket', handleSocketOnProxyReq);
     if (!state.isClose) {
       state.isClose = true;
     }
@@ -124,17 +100,12 @@ const httpConnect = (
       onData();
       state.isConnect = false;
     }
-    if (proxySocket) {
-      proxySocket.off('close', handleCloseOnProxySocket);
-    }
     if (proxyRes) {
       proxyRes.off('data', handleDataOnProxyRes);
       proxyRes.off('close', handleCloseOnProxyRes);
       proxyRes.off('end', handleCloseOnProxyRes);
     }
-    if (proxySocket) {
-      proxySocket.off('error', handleErrorOnProxySocket);
-    }
+
     proxyReq.off('error', handleErrorOnProxyReq);
   }
 
