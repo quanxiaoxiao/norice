@@ -2,7 +2,6 @@ const Koa = require('koa');
 const http = require('http');
 const url = require('url');
 const path = require('path');
-const webpack = require('webpack');
 const devMiddleware = require('./middlewares/webpackDev');
 const hotMiddleware = require('./middlewares/webpackHot');
 const config$ = require('./config');
@@ -18,7 +17,12 @@ const webpackMiddlewares = [];
 let wsRouteList = [];
 
 config$.subscribe({
-  next: ({ api, middlewares, webpack: webpackConfig }) => {
+  next: ({
+    api,
+    middlewares,
+    webpackConfig,
+    webpack,
+  }) => {
     while (app.middleware.length) {
       app.middleware.pop();
     }

@@ -53,12 +53,27 @@ module.exports = subject
       newConfigModule._compile(script, configPath);
       return newConfigModule;
     }, null),
-    map(configModule => configModule.exports),
-    map(({ api = {}, middlewares = [], webpackDev: webpack }) => ({
-      middlewares,
-      webpack,
-      api: apiParser(api),
-    })),
+    map((mod) => {
+      const {
+        exports: {
+          api = {},
+          middlewares = [],
+          webpackDev,
+        },
+      } = mod;
+      if (webpackDev) {
+        return {
+          webpack: mod.require('webpack'),
+          middlewares,
+          webpackConfig: webpackDev,
+          api: apiParser(api),
+        };
+      }
+      return {
+        middlewares,
+        api: apiParser(api),
+      };
+    }),
     tap(({ api }) => {
       console.log('generate api list ---------------------------');
       const info = api.map(item => `${chalk.gray('pathname:')} ${item.pathname}, `
