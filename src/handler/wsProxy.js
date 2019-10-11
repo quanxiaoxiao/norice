@@ -58,6 +58,7 @@ const stream = (socket, outgoing, server) => {
   };
   const handleProxyReqUpgrade = (proxyRes, proxySocket) => {
     socket.on('error', handleSocketError);
+    proxySocket.on('error', () => {});
 
     socket.write(createHttpHeader('HTTP/1.1 101 Switching Protocols', proxyRes.headers));
 
@@ -76,7 +77,7 @@ const stream = (socket, outgoing, server) => {
     function cleanupSocket() {
       socket.off('close', handleSocketClose);
       socket.off('end', handleSocketClose);
-      socket.off('error', handleSocketError);
+      // socket.off('error', handleSocketError);
     }
 
     proxySocket.pipe(socket);
