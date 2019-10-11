@@ -27,13 +27,22 @@ module.exports = () => {
     .command(
       'deploy',
       'deploy static file to server',
-      y => y.option('config', {
-        alias: 'c',
-        description: 'config file path default is norice.config.js',
-        default: 'norice.config.js',
-      }),
+      {
+        config: {
+          alias: 'c',
+          description: 'config file path default is norice.config.js',
+          default: 'norice.config.js',
+        },
+        message: {
+          alias: 'm',
+          default: '',
+        },
+        tag: {
+          alias: 't',
+        },
+      },
       (argv) => {
-        require('../deploy')(argv.config);
+        require('../deploy')(argv.config, argv.message, argv.tag);
       },
     )
     .version(pkg.version)

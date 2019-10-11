@@ -1,13 +1,14 @@
 const path = require('path');
+const tar = require('tar');
 const fs = require('fs');
+const qs = require('querystring');
 const http = require('http');
 const https = require('https');
 const url = require('url');
 const { Module } = require('module');
 const shelljs = require('shelljs');
-const { spawn } = require('child_process');
 
-module.exports = (configName) => {
+module.exports = (configName, message, tag) => {
   const configPathName = path.resolve(process.cwd(), configName);
   const mod = new Module(configPathName, null);
   mod.paths = Module._nodeModulePaths(path.dirname(configPathName));
@@ -34,40 +35,39 @@ module.exports = (configName) => {
       shelljs.exec(1);
     }
     process.chdir(path.resolve(webpackConfig.output.path, '..'));
-    const tar = spawn('tar', ['-cf', '-', path.basename(webpackConfig.output.path)]);
-    const buf = [];
-    tar.stdout.on('data', (chunk) => {
-      buf.push(chunk);
+    const {
+      hostname,
+      port,
+      pathname,
+      protocol,
+    } = url.parse(config.deploy.url);
+    const params = qs.stringify({
+      message,
+      tag,
     });
-    tar.once('close', () => {
-      shelljs.rm('-r', webpackConfig.output.path);
-      const {
+    const req = (protocol === 'https:' ? https : http)
+      .request({
         hostname,
-        port,
-        query,
-        pathname,
-        protocol,
-      } = url.parse(config.deploy.url);
-      const req = (protocol === 'https:' ? https : http)
-        .request({
-          hostname,
-          port: parseInt(port, 10) || (protocol === 'https:' ? 443 : 80),
-          path: `${pathname}${query ? `?${query}` : ''}`,
-          headers: {
-            'x-basename': path.basename(webpackConfig.output.path),
-            ...config.deploy.headers,
-          },
-          method: 'POST',
-        });
-      req.on('response', (res) => {
-        if (res.statusCode !== 200) {
-          console.error(`statusCode: ${res.statusCode} deploy fail`);
-        } else {
-          console.log('deploy success');
-        }
+        port: parseInt(port, 10) || (protocol === 'https:' ? 443 : 80),
+        path: `${pathname}?${params}`,
+        headers: {
+          'x-basename': path.basename(webpackConfig.output.path),
+          ...config.deploy.headers,
+        },
+        method: 'POST',
       });
-      req.write(Buffer.concat(buf));
-      req.end();
+    req.on('response', (res) => {
+      if (res.statusCode !== 200) {
+        console.error(`statusCode: ${res.statusCode} deploy fail`);
+      } else {
+        console.log('deploy success');
+      }
     });
+    tar.c(
+      {
+        gzip: true,
+      },
+      [path.basename(webpackConfig.output.path)],
+    ).pipe(req);
   });
 };
