@@ -1,10 +1,10 @@
 const _ = require('lodash');
 const pathToRegexp = require('path-to-regexp');
-const handler = require('./handler');
+const handler = require('../apiHandler');
 
 const METHODS = ['GET', 'POST', 'DELETE', 'PUT', 'PATCH'];
 
-module.exports = api => Object.entries(api)
+module.exports = (api) => Object.entries(api)
   .filter(([pathname, value]) => {
     if (!/^\/.*/.test(pathname) || !_.isPlainObject(value) || _.isEmpty(value)) {
       console.error(`pathname: ${pathname} invalid`);
@@ -15,7 +15,7 @@ module.exports = api => Object.entries(api)
   .map(([pathname, route]) => {
     const routeKeys = Object.keys(route);
     if (routeKeys.length >= 2) {
-      if (routeKeys.every(method => METHODS.includes(method.toUpperCase()))) {
+      if (routeKeys.every((method) => METHODS.includes(method.toUpperCase()))) {
         return routeKeys.map((method) => {
           const handlerName = Object.keys(route[method])[0];
           return {
@@ -32,7 +32,7 @@ module.exports = api => Object.entries(api)
     if (routeKeys[0] === 'all') {
       const handlerName = Object.keys(route.all)[0];
       const handlerValue = route.all[handlerName];
-      return METHODS.map(method => ({
+      return METHODS.map((method) => ({
         pathname,
         method,
         handlerName,
@@ -70,7 +70,7 @@ module.exports = api => Object.entries(api)
     }
     return true;
   })
-  .map(item => ({
+  .map((item) => ({
     pathname: item.pathname,
     method: item.method,
     regexp: pathToRegexp(item.pathname),

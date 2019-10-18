@@ -3,7 +3,7 @@ const url = require('url');
 const http = require('http');
 const https = require('https');
 const _ = require('lodash');
-const createHttpHeader = require('../utils/createHttpHeader');
+const createHttpHeader = require('../apilib/createHttpHeader');
 
 const getOutgoing = (req, options) => {
   if (_.isEmpty(options)) {

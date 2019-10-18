@@ -19,7 +19,7 @@ const fetch = async ({
         return;
       }
       if (error) {
-        reject();
+        reject(error);
         isHandle = true;
       } else if (Buffer.isBuffer(ret)) {
         try {
@@ -30,7 +30,7 @@ const fetch = async ({
           isHandle = true;
         }
       } else if (ret.statusCode !== 200) {
-        reject();
+        reject(new Error(`statusCode: ${ret.statusCode}`));
         isHandle = true;
       }
     });

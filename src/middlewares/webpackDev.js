@@ -10,7 +10,7 @@ module.exports = (compiler, options) => {
       setHeader: (name, value) => {
         ctx.set(name, value);
       },
-      getHeader: name => ctx.get(name),
+      getHeader: (name) => ctx.get(name),
     }, next);
   }
   middleware.getFilenameFromUrl = expressMiddleware.getFilenameFromUrl;

@@ -50,10 +50,7 @@ module.exports = (configName, message, tag) => {
         hostname,
         port: parseInt(port, 10) || (protocol === 'https:' ? 443 : 80),
         path: `${pathname}?${params}`,
-        headers: {
-          'x-basename': path.basename(webpackConfig.output.path),
-          ...config.deploy.headers,
-        },
+        headers: config.deploy.headers,
         method: 'POST',
       });
     req.on('response', (res) => {

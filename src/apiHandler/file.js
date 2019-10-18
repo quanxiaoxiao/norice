@@ -1,14 +1,13 @@
 const _ = require('lodash');
 const path = require('path');
 const fs = require('fs');
-const getFilePath = require('../utils/getFilePath');
 
 const file = (handle) => {
   const type = typeof handle;
   if (type === 'string') {
     return (ctx) => {
       ctx.type = path.extname(handle);
-      ctx.body = fs.createReadStream(getFilePath(handle));
+      ctx.body = fs.createReadStream(path.resolve(__dirname, '..', handle));
     };
   }
   if (type === 'function') {
@@ -18,7 +17,7 @@ const file = (handle) => {
         ctx.trhow(500);
       }
       ctx.type = path.extname(pathname);
-      ctx.body = fs.createReadStream(getFilePath(pathname));
+      ctx.body = fs.createReadStream(path.resolve(__dirname, '..', pathname));
     };
   }
   return (ctx) => {

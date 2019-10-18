@@ -16,7 +16,7 @@ const {
 } = require('rxjs/operators');
 const watch = require('node-watch');
 const chalk = require('chalk');
-const apiParser = require('./apiParser');
+const apiParser = require('./apilib/apiParser');
 
 const configFile = 'norice.config.js';
 const configDir = process.cwd();
@@ -76,14 +76,14 @@ module.exports = subject
     }),
     tap(({ api }) => {
       console.log('generate api list ---------------------------');
-      const info = api.map(item => `${chalk.gray('pathname:')} ${item.pathname}, `
+      const info = api.map((item) => `${chalk.gray('pathname:')} ${item.pathname}, `
         + `${chalk.gray('method:')} ${chalk.bold(item.method.toUpperCase())}, `
         + `${chalk.gray('type:')} ${item.handlerName}`)
         .join('\n');
       console.log(info);
       console.log('---------------------------------------------');
     }),
-    retryWhen(errors => errors.pipe(
+    retryWhen((errors) => errors.pipe(
       tap((error) => {
         console.error(error);
       }),

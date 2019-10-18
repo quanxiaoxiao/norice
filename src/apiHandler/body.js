@@ -1,13 +1,13 @@
-const httpForward = require('../httpForward');
-const fetch = require('../fetch');
+const httpForward = require('../apilib/httpForward');
+const fetch = require('../apilib/fetch');
 
-const body = handle => async (ctx) => {
+const body = (handle) => async (ctx) => {
   if (typeof handle === 'function') {
     try {
       const data = await handle(
         ctx,
         httpForward,
-        options => fetch({
+        (options) => fetch({
           ...options,
           socket: ctx.req.socket,
         }),

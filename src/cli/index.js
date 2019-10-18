@@ -8,7 +8,7 @@ module.exports = () => {
     .command(
       'server',
       'startup http server',
-      y => y.option('port', {
+      (y) => y.option('port', {
         alias: 'p',
         description: 'listen port default is 3000',
         default: 3000,

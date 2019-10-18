@@ -32,7 +32,7 @@ config$.subscribe({
     });
 
     app.use(async (ctx, next) => {
-      const routerItem = api.find(item => item.method === ctx.method
+      const routerItem = api.find((item) => item.method === ctx.method
         && item.handlerName !== 'wsProxy'
         && item.regexp.exec(ctx.path));
       if (!routerItem) {
@@ -43,7 +43,7 @@ config$.subscribe({
       await routerItem.handler(ctx, next);
     });
 
-    wsRouteList = api.filter(item => item.handlerName === 'wsProxy');
+    wsRouteList = api.filter((item) => item.handlerName === 'wsProxy');
 
     if (webpackConfig) {
       if (!compiler) {
@@ -76,7 +76,7 @@ config$.subscribe({
 
 server.on('upgrade', (req, socket) => {
   const { pathname } = url.parse(req.url);
-  const upgrade = wsRouteList.find(item => item.handlerName === 'wsProxy'
+  const upgrade = wsRouteList.find((item) => item.handlerName === 'wsProxy'
     && item.method === 'GET'
     && item.regexp.exec(pathname));
   if (upgrade) {
