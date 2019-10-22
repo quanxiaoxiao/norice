@@ -17,13 +17,6 @@ module.exports = () => {
         require('../app')(argv.port);
       },
     )
-    .options({
-      port: {
-        alias: 'p',
-        description: 'Set port',
-        default: 3000,
-      },
-    })
     .command(
       'deploy',
       'deploy static file to server',
