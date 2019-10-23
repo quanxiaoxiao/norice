@@ -4,6 +4,7 @@ const qs = require('querystring');
 const http = require('http');
 const https = require('https');
 const shelljs = require('shelljs');
+const getResourceRequestOptions = require('../lib/getResourceRequestOptions');
 const compileModle = require('../lib/compileModle');
 
 module.exports = (configName, message, tag) => {
@@ -17,9 +18,11 @@ module.exports = (configName, message, tag) => {
   const { webpackProd: webpackConfig } = config;
   const compiler = webpack(webpackConfig, (error, stats) => {
     if (error) {
-      console.error(error);
+      console.error(error.message);
     }
-    console.log(stats.toString());
+    if (stats) {
+      console.log(stats.toString());
+    }
   });
 
   compiler.hooks.afterEmit.tap('AfterEmitPlugin', () => {
@@ -33,10 +36,8 @@ module.exports = (configName, message, tag) => {
     });
     const req = (deployConfig.port === 443 ? https : http)
       .request({
-        hostname: deployConfig.hostname,
-        port: deployConfig.port,
+        ...getResourceRequestOptions(config),
         path: `/resource?${params}`,
-        headers: deployConfig.headers,
         method: 'POST',
       });
     req.on('response', (res) => {
@@ -45,6 +46,9 @@ module.exports = (configName, message, tag) => {
       } else {
         console.log('deploy success');
       }
+    });
+    req.on('error', (error) => {
+      console.error(error.message);
     });
     tar.c(
       {
