@@ -2,6 +2,7 @@ const Koa = require('koa');
 const http = require('http');
 const url = require('url');
 const path = require('path');
+const fs = require('fs');
 const devMiddleware = require('./middlewares/webpackDev');
 const hotMiddleware = require('./middlewares/webpackHot');
 const config = require('./config');
@@ -96,5 +97,14 @@ module.exports = (configFileName, port) => {
   });
   server.listen(port, () => {
     console.log(`Listening at port: ${port}`);
+  });
+
+  process.on('uncaughtException', (error) => {
+    fs.writeFileSync(path.resolve(process.cwd(), 'error.log'), error.message);
+    console.error(error.stack);
+    const killTimer = setTimeout(() => {
+      process.exit(1);
+    }, 3000);
+    killTimer.unref();
   });
 };
