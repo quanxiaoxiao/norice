@@ -34,9 +34,17 @@ yargs // eslint-disable-line
         alias: 't',
         type: 'string',
       },
+      dir: {
+        alias: 'd',
+        type: 'string',
+      },
     },
     (argv) => {
-      require('./actions/deploy')(argv.config, argv.message, argv.tag);
+      if (argv.dir) {
+        require('./actions/deployByDir')(argv.config, argv.dir, argv.message, argv.tag);
+      } else {
+        require('./actions/deploy')(argv.config, argv.message, argv.tag);
+      }
     },
   )
   .command(
