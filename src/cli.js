@@ -49,42 +49,18 @@ yargs // eslint-disable-line
   )
   .command(
     'resource',
-    'resource operation [action](count|prev|list|last|select)',
-    {
-      message: {
-        alias: 'm',
-        type: 'string',
-        description: 'display resources from message',
-      },
-      tag: {
-        alias: 't',
-        type: 'string',
-        description: 'display resources from tag',
-      },
-      resource: {
-        alias: 'r',
-        type: 'string',
-        description: 'set current resource by id',
-      },
-    },
+    'resource operation [action](show|select)',
+    {},
     (argv) => {
-      const [, action] = argv._;
-      const map = {
-        prev: (config) => require('./actions/resourcePrev')(config),
-        last: (config) => require('./actions/resourceLast')(config),
-        list: (config) => require('./actions/resources')(config),
-        count: (config) => require('./actions/resourceCount')(config),
-      };
-      if (['prev', 'last', 'list', 'count'].includes(action)) {
-        map[action](argv.config);
-      } else if (!action) {
-        if (argv.resource) {
-          require('./actions/resourceSelect')(argv.config, argv.resource);
-        } else if (argv.message || argv.tag) {
-          require('./actions/resourceSearch')(argv.config, argv.message, argv.tag);
+      const [, action, name] = argv._;
+      if (action === 'show') {
+        if (name) {
+          require('./actions/resources/printResource')(argv.config, name);
         } else {
-          require('./actions/resourceCurrent')(argv.config);
+          require('./actions/resources/printResources')(argv.config);
         }
+      } else if (action === 'select' && name) {
+        require('./actions/resources/selectResource')(argv.config, name);
       }
     },
   )

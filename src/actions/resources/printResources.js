@@ -1,9 +1,9 @@
 const fp = require('lodash/fp');
 const moment = require('moment');
 const { table } = require('table');
-const compileModle = require('../lib/compileModle');
-const request = require('../lib/request');
-const getResourceRequestOptions = require('../lib/getResourceRequestOptions');
+const compileModle = require('../../lib/compileModle');
+const request = require('../../lib/request');
+const getResourceRequestOptions = require('../../lib/getResourceRequestOptions');
 
 
 module.exports = async (configName) => {
