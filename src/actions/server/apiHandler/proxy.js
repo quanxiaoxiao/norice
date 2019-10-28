@@ -13,7 +13,9 @@ const getOutgoing = (ctx, options) => {
   let target;
   if (_.isString(options)) {
     target = options;
-    options = {};
+    options = {
+      body: ctx.req,
+    };
   } else {
     target = options.url;
     options = _.omit(options, ['url']);
