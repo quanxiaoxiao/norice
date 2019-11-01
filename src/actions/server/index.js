@@ -11,6 +11,7 @@ const logger = require('./middlewares/logger');
 
 module.exports = (configFileName, port) => {
   const app = new Koa();
+  process.env.port = port;
   const config$ = config(configFileName);
 
   const server = http.createServer(app.callback());
