@@ -1,25 +1,22 @@
 const fp = require('lodash/fp');
 const moment = require('moment');
 const { table } = require('table');
+const { fetchData } = require('@quanxiaoxiao/about-http');
 const compileModle = require('../../lib/compileModle');
-const request = require('../../lib/request');
-const getResourceRequestOptions = require('../../lib/getResourceRequestOptions');
 
 
 module.exports = async (configName) => {
   const mod = compileModle(configName);
   const { exports: config } = mod;
   try {
-    const currentBuf = await request({
-      ...getResourceRequestOptions(config),
-      path: '/resource',
-      method: 'GET',
+    const currentBuf = await fetchData({
+      url: `http://${config.deploy.hostname}:${config.deploy.port}/resource`,
+      headers: config.deploy.headers,
     });
     const { _id } = JSON.parse(currentBuf);
-    const buf = await request({
-      ...getResourceRequestOptions(config),
-      path: '/resources',
-      method: 'GET',
+    const buf = await fetchData({
+      url: `http://${config.deploy.hostname}:${config.deploy.port}/resources`,
+      headers: config.deploy.headers,
     });
     fp.compose(
       console.log,
@@ -41,6 +38,7 @@ module.exports = async (configName) => {
       JSON.parse,
     )(buf);
   } catch (error) {
+    console.log(error);
     console.log('fail');
   }
 };

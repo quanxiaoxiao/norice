@@ -1,19 +1,16 @@
 const fp = require('lodash/fp');
 const filesize = require('filesize');
 const moment = require('moment');
+const { fetchData } = require('@quanxiaoxiao/about-http');
 const compileModle = require('../../lib/compileModle');
-const request = require('../../lib/request');
-const getResourceRequestOptions = require('../../lib/getResourceRequestOptions');
-
 
 module.exports = async (configName, resource) => {
   const mod = compileModle(configName);
   const { exports: config } = mod;
   try {
-    const buf = await request({
-      ...getResourceRequestOptions(config),
-      path: '/resources',
-      method: 'GET',
+    const buf = await fetchData({
+      url: `http://${config.deploy.hostname}:${config.deploy.port}/resources`,
+      headers: config.deploy.headers,
     });
     const ret = fp.compose(
       (_) => ({

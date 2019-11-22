@@ -1,10 +1,8 @@
 const path = require('path');
 const tar = require('tar');
 const qs = require('querystring');
-const http = require('http');
-const https = require('https');
 const shelljs = require('shelljs');
-const getResourceRequestOptions = require('../lib/getResourceRequestOptions');
+const { fetchData } = require('@quanxiaoxiao/about-http');
 const compileModle = require('../lib/compileModle');
 
 module.exports = (configName, message, tag) => {
@@ -25,7 +23,7 @@ module.exports = (configName, message, tag) => {
     }
   });
 
-  compiler.hooks.afterEmit.tap('AfterEmitPlugin', () => {
+  compiler.hooks.afterEmit.tap('AfterEmitPlugin', async () => {
     if (!shelljs.test('-d', webpackConfig.output.path)) {
       shelljs.exec(1);
     }
@@ -34,27 +32,18 @@ module.exports = (configName, message, tag) => {
       message,
       tag,
     });
-    const req = (deployConfig.port === 443 ? https : http)
-      .request({
-        ...getResourceRequestOptions(config),
-        path: `/resource?${params}`,
-        method: 'POST',
-      });
-    req.on('response', (res) => {
-      if (res.statusCode !== 200) {
-        console.error(`statusCode: ${res.statusCode} deploy fail`);
-      } else {
-        console.log('deploy success');
-      }
+    const ret = await fetchData({
+      url: `http://${config.deploy.hostname}:${config.deploy.port}/resource?${params}`,
+      headers: config.deploy.headers,
+      method: 'POST',
+      body: tar.c(
+        {
+          gzip: true,
+        },
+        [path.basename(webpackConfig.output.path)],
+      ),
+      match: (statusCode) => statusCode === 200,
     });
-    req.on('error', (error) => {
-      console.error(error.message);
-    });
-    tar.c(
-      {
-        gzip: true,
-      },
-      [path.basename(webpackConfig.output.path)],
-    ).pipe(req);
+    console.log(ret.toString());
   });
 };

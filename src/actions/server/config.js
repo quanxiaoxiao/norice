@@ -15,8 +15,6 @@ const {
   share,
 } = require('rxjs/operators');
 const watch = require('node-watch');
-const chalk = require('chalk');
-const apiParser = require('./apilib/apiParser');
 
 module.exports = (configFileName) => {
   const configDir = process.cwd();
@@ -69,22 +67,13 @@ module.exports = (configFileName) => {
             webpack: mod.require('webpack'),
             middlewares,
             webpackConfig: webpackDev,
-            api: apiParser(api),
+            api,
           };
         }
         return {
           middlewares,
-          api: apiParser(api),
+          api,
         };
-      }),
-      tap(({ api }) => {
-        console.log('generate api list ---------------------------');
-        const info = api.map((item) => `${chalk.gray('pathname:')} ${item.pathname}, `
-          + `${chalk.gray('method:')} ${chalk.bold(item.method.toUpperCase())}, `
-          + `${chalk.gray('type:')} ${item.handlerName}`)
-          .join('\n');
-        console.log(info);
-        console.log('---------------------------------------------');
       }),
       retryWhen((errors) => errors.pipe(
         tap((error) => {

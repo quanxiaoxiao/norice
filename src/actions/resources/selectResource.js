@@ -1,15 +1,14 @@
-const request = require('../../lib/request');
+const { fetchData } = require('@quanxiaoxiao/about-http');
 const compileModle = require('../../lib/compileModle');
-const getResourceRequestOptions = require('../../lib/getResourceRequestOptions');
 
 
 module.exports = async (configName, typeName) => {
   const mod = compileModle(configName);
   const { exports: config } = mod;
   try {
-    const buf = await request({
-      ...getResourceRequestOptions(config),
-      path: `/resource/${typeName}`,
+    const buf = await fetchData({
+      url: `http://${config.deploy.hostname}:${config.deploy.port}/resource/${typeName}`,
+      headers: config.deploy.headers,
       method: 'PUT',
     });
     console.log(buf.toString());

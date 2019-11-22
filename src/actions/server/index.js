@@ -1,10 +1,12 @@
 const Koa = require('koa');
 const http = require('http');
-const url = require('url');
 const path = require('path');
 const fs = require('fs');
-
-const cors = module.require('@koa/cors');
+const { pathToRegexp } = require('path-to-regexp');
+const cors = require('@koa/cors');
+const fp = require('lodash/fp');
+const routeHandler = require('@quanxiaoxiao/route-handler');
+const apiParser = require('@quanxiaoxiao/api-parser');
 const devMiddleware = require('./middlewares/webpackDev');
 const hotMiddleware = require('./middlewares/webpackHot');
 const config = require('./config');
@@ -21,8 +23,6 @@ module.exports = (configFileName, port) => {
   let compiler;
   const webpackMiddlewares = [];
 
-  let wsRouteList = [];
-
   config$.subscribe({
     next: ({
       api,
@@ -30,6 +30,14 @@ module.exports = (configFileName, port) => {
       webpackConfig,
       webpack,
     }) => {
+      const routeList = apiParser(api)
+        .map((item) => ({
+          ...item,
+          regexp: pathToRegexp(item.pathname),
+        }));
+      console.log('---------routerList---------');
+      console.log(routeList.map((item) => `${item.method} ${item.pathname}`).join('\n'));
+      console.log('---------routerList---------');
       while (app.middleware.length) {
         app.middleware.pop();
       }
@@ -40,18 +48,23 @@ module.exports = (configFileName, port) => {
       });
 
       app.use(async (ctx, next) => {
-        const routerItem = api.find((item) => item.method === ctx.method
-          && item.handlerName !== 'wsProxy'
+        const routerItem = routeList.find((item) => item.method === ctx.method
           && item.regexp.exec(ctx.path));
         if (!routerItem) {
           await next();
           return;
         }
         ctx.matchs = routerItem.regexp.exec(ctx.path);
-        await routerItem.handler(ctx, next);
+        const handleName = fp.compose(
+          fp.filter((key) => !['method', 'pathname', 'regexp'].includes(key)),
+          fp.keys,
+        )(routerItem);
+        if (!handleName) {
+          console.error(`pathname: ${routerItem.pathname} cant handle`);
+          ctx.throw(500);
+        }
+        await routeHandler[handleName](routerItem[handleName])(ctx, next);
       });
-
-      wsRouteList = api.filter((item) => item.handlerName === 'wsProxy');
 
       if (webpackConfig) {
         if (!compiler) {
@@ -80,20 +93,6 @@ module.exports = (configFileName, port) => {
         });
       }
     },
-  });
-
-  server.on('upgrade', (req, socket) => {
-    const { pathname } = url.parse(req.url);
-    const upgrade = wsRouteList.find((item) => item.handlerName === 'wsProxy'
-      && item.method === 'GET'
-      && item.regexp.exec(pathname));
-    if (upgrade) {
-      console.log('websocket connection:', socket.remoteAddress);
-      upgrade.handler(req, socket, server);
-    } else {
-      console.log('websocket deny:', socket.remoteAddress);
-      socket.destroy();
-    }
   });
 
   server.on('error', (error) => {
