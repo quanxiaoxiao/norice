@@ -3,6 +3,8 @@ const http = require('http');
 const url = require('url');
 const path = require('path');
 const fs = require('fs');
+
+const cors = module.require('@koa/cors');
 const devMiddleware = require('./middlewares/webpackDev');
 const hotMiddleware = require('./middlewares/webpackHot');
 const config = require('./config');
@@ -32,6 +34,7 @@ module.exports = (configFileName, port) => {
         app.middleware.pop();
       }
       app.use(logger);
+      app.use(cors());
       middlewares.forEach((middleware) => {
         app.use(middleware);
       });

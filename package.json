@@ -36,8 +36,9 @@
   },
   "homepage": "https://github.com/quanxiaoxiao/norice",
   "dependencies": {
-    "chalk": "^2.4.2",
-    "filesize": "^6.0.0",
+    "@koa/cors": "^2.2.3",
+    "chalk": "^3.0.0",
+    "filesize": "^6.0.1",
     "koa": "^2.11.0",
     "koa-logger": "^3.2.1",
     "koa-router": "^7.4.0",
