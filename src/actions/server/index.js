@@ -75,17 +75,21 @@ module.exports = (configFileName, port) => {
           }));
           webpackMiddlewares.push(hotMiddleware(compiler));
           webpackMiddlewares.push(async (ctx) => {
-            const indexHtml = await new Promise((resolve, reject) => {
-              compiler.outputFileSystem.readFile(path.resolve(webpackConfig.output.path, 'index.html'), (err, indexHtmlTemplate) => {
-                if (err) {
-                  reject(err);
-                } else {
-                  resolve(indexHtmlTemplate);
-                }
+            if (ctx.method === 'GET') {
+              const indexHtml = await new Promise((resolve, reject) => {
+                compiler.outputFileSystem.readFile(path.resolve(webpackConfig.output.path, 'index.html'), (err, indexHtmlTemplate) => {
+                  if (err) {
+                    reject(err);
+                  } else {
+                    resolve(indexHtmlTemplate);
+                  }
+                });
               });
-            });
-            ctx.type = 'text/html';
-            ctx.body = indexHtml;
+              ctx.type = 'text/html';
+              ctx.body = indexHtml;
+            } else {
+              ctx.throw(404);
+            }
           });
         }
         webpackMiddlewares.forEach((middleware) => {

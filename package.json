@@ -1,6 +1,6 @@
 {
   "name": "norice",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "main": "bin/norice",
   "license": "MIT",
   "engines": {
@@ -21,7 +21,7 @@
     "norice": "./bin/norice"
   },
   "devDependencies": {
-    "eslint": "^6.6.0",
+    "eslint": "^6.7.1",
     "eslint-config-airbnb": "^18.0.1",
     "eslint-plugin-import": "^2.18.2",
     "eslint-plugin-jsx-a11y": "^6.2.3",
@@ -37,9 +37,9 @@
   "homepage": "https://github.com/quanxiaoxiao/norice",
   "dependencies": {
     "@koa/cors": "^3.0.0",
-    "@quanxiaoxiao/about-http": "0.0.3",
-    "@quanxiaoxiao/api-parser": "0.0.3",
-    "@quanxiaoxiao/route-handler": "0.0.1",
+    "@quanxiaoxiao/about-http": "0.0.8",
+    "@quanxiaoxiao/api-parser": "0.0.4",
+    "@quanxiaoxiao/route-handler": "0.0.7",
     "filesize": "^6.0.1",
     "koa": "^2.11.0",
     "koa-logger": "^3.2.1",
