@@ -4,14 +4,12 @@ const qs = require('querystring');
 const shelljs = require('shelljs');
 const { fetchData } = require('@quanxiaoxiao/about-http');
 const compileModle = require('../lib/compileModle');
+const getResourceOptions = require('../lib/getResourceOptions');
 
 module.exports = (configName, message, tag) => {
   const mod = compileModle(configName);
   const { exports: config } = mod;
-  const { deploy: deployConfig } = config;
-  if (!deployConfig) {
-    throw new Error('deploy config is not set');
-  }
+  const { deployUrl } = config;
   const webpack = mod.require('webpack');
   const { webpackProd: webpackConfig } = config;
   const compiler = webpack(webpackConfig, (error, stats) => {
@@ -32,9 +30,10 @@ module.exports = (configName, message, tag) => {
       message,
       tag,
     });
+    const options = getResourceOptions(deployUrl);
     const ret = await fetchData({
-      url: `http://${config.deploy.hostname}:${config.deploy.port}/resource?${params}`,
-      headers: config.deploy.headers,
+      url: `${options.protocol}//${options.hostname}:${options.port}${options.prefix}/resource?${params}`,
+      headers: options.headers,
       method: 'POST',
       body: tar.c(
         {

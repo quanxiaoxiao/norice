@@ -3,14 +3,16 @@ const filesize = require('filesize');
 const moment = require('moment');
 const { fetchData } = require('@quanxiaoxiao/about-http');
 const compileModle = require('../../lib/compileModle');
+const getResourceOptions = require('../../lib/getResourceOptions');
 
 module.exports = async (configName, resource) => {
   const mod = compileModle(configName);
   const { exports: config } = mod;
   try {
+    const options = getResourceOptions(config.deployUrl);
     const buf = await fetchData({
-      url: `http://${config.deploy.hostname}:${config.deploy.port}/resources`,
-      headers: config.deploy.headers,
+      url: `${options.protocol}//${options.hostname}:${options.port}${options.prefix}/resources`,
+      headers: options.headers,
     });
     const ret = fp.compose(
       (_) => ({

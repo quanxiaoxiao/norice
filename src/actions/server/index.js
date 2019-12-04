@@ -48,14 +48,17 @@ module.exports = (configFileName, port) => {
       });
 
       app.use(async (ctx, next) => {
-        const routerItem = routeList.find((item) => item.method === ctx.method
-          && item.regexp.exec(ctx.path));
+        const routerItem = routeList
+          .find((item) => item.regexp.exec(ctx.path) && item.method === ctx.method);
         if (!routerItem) {
-          await next();
-          return;
+          if (ctx.method === 'GET') {
+            await next();
+            return;
+          }
+          ctx.throw(404);
         }
-        ctx.matchs = routerItem.regexp.exec(ctx.path);
         const handleName = fp.compose(
+          fp.first,
           fp.filter((key) => !['method', 'pathname', 'regexp'].includes(key)),
           fp.keys,
         )(routerItem);
@@ -63,7 +66,13 @@ module.exports = (configFileName, port) => {
           console.error(`pathname: ${routerItem.pathname} cant handle`);
           ctx.throw(500);
         }
-        await routeHandler[handleName](routerItem[handleName])(ctx, next);
+        const handler = routeHandler[handleName];
+        if (!handler) {
+          console.error(`pathname: ${routerItem.pathname}, cant handle by ${handleName}`);
+          ctx.throw(500);
+        }
+        ctx.matchs = routerItem.regexp.exec(ctx.path);
+        await handler(routerItem[handleName])(ctx, next);
       });
 
       if (webpackConfig) {
