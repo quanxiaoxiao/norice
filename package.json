@@ -1,6 +1,6 @@
 {
   "name": "norice",
-  "version": "2.2.3",
+  "version": "2.2.5",
   "main": "bin/norice",
   "license": "MIT",
   "engines": {
@@ -40,10 +40,10 @@
   "homepage": "https://github.com/quanxiaoxiao/norice",
   "dependencies": {
     "@koa/cors": "^3.0.0",
-    "@quanxiaoxiao/about-http": "0.0.13",
+    "@quanxiaoxiao/about-http": "0.0.14",
     "@quanxiaoxiao/api-parser": "^0.1.1",
-    "@quanxiaoxiao/route-handler": "0.0.9",
-    "filesize": "^6.0.1",
+    "@quanxiaoxiao/route-handler": "0.0.11",
+    "filesize": "^6.1.0",
     "koa": "^2.11.0",
     "koa-logger": "^3.2.1",
     "lodash": "^4.17.15",

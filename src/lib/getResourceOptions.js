@@ -13,7 +13,7 @@ module.exports = (deployUrl) => {
     port: parser.port // eslint-disable-line
       ? parseInt(parser.port, 10)
       : (parser.protocol === 'https:' ? 443 : 80),
-    prefix: parser.path,
+    prefix: parser.path === '/' ? '' : parser.path,
     hostname: parser.hostname,
     protocol: parser.protocol,
     headers: {
