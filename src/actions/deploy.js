@@ -7,6 +7,9 @@ const compileModle = require('../lib/compileModle');
 const getResourceOptions = require('../lib/getResourceOptions');
 
 module.exports = (configName, message, tag) => {
+  if (process.env.NODE_ENV !== 'production') {
+    process.env.NODE_ENV = 'production';
+  }
   const mod = compileModle(configName);
   const { exports: config } = mod;
   const { deployUrl } = config;
