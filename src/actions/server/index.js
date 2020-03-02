@@ -51,6 +51,19 @@ module.exports = (configFileName, port) => {
         const routerItem = routeList
           .find((item) => item.regexp.exec(ctx.path) && item.method === ctx.method);
         if (!routerItem) {
+          const list = routeList.filter((item) => item.regexp.exec(ctx.path));
+          if (list.length !== 0) {
+            if (ctx.method === 'OPTIONS') {
+              ctx.status = 204;
+              ctx.set(
+                'Access-Control-Allow-Methods',
+                ['OPTIONS', ...list.map((item) => item.method)].join(','),
+              );
+              ctx.body = null;
+              return;
+            }
+            ctx.throw(405);
+          }
           if (ctx.method === 'GET') {
             await next();
             return;
@@ -63,14 +76,15 @@ module.exports = (configFileName, port) => {
           fp.keys,
         )(routerItem);
         if (!handleName) {
-          console.error(`pathname: ${routerItem.pathname} cant handle`);
+          console.error(`[${ctx.method}] ${ctx.path} @:${routerItem.pathname}`);
           ctx.throw(500);
         }
         const handler = routeHandler[handleName];
         if (!handler) {
-          console.error(`pathname: ${routerItem.pathname}, cant handle by ${handleName}`);
+          console.error(`[${ctx.method}] ${ctx.path} @:${routerItem.pathname} ::${handleName}`);
           ctx.throw(500);
         }
+        console.log(`[${ctx.method}] ${ctx.path} @:${routerItem.pathname} ::${handleName} `);
         ctx.matchs = routerItem.regexp.exec(ctx.path);
         await handler(routerItem[handleName])(ctx, next);
       });

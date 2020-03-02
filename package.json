@@ -1,6 +1,6 @@
 {
   "name": "norice",
-  "version": "2.2.5",
+  "version": "2.2.6",
   "main": "bin/norice",
   "license": "MIT",
   "engines": {
@@ -42,7 +42,7 @@
     "@koa/cors": "^3.0.0",
     "@quanxiaoxiao/about-http": "0.0.14",
     "@quanxiaoxiao/api-parser": "^0.1.1",
-    "@quanxiaoxiao/route-handler": "0.0.11",
+    "@quanxiaoxiao/route-handler": "0.0.13",
     "filesize": "^6.1.0",
     "koa": "^2.11.0",
     "koa-logger": "^3.2.1",
