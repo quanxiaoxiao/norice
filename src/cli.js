@@ -49,7 +49,7 @@ yargs // eslint-disable-line
   )
   .command(
     'resource',
-    'resource operation [action](show|select)',
+    'resource operation [action](show|select|fetch)',
     {},
     (argv) => {
       const [, action, name] = argv._;
@@ -61,6 +61,8 @@ yargs // eslint-disable-line
         }
       } else if (action === 'select' && name) {
         require('./actions/resources/selectResource')(argv.config, name);
+      } else if (action === 'fetch') {
+        require('./actions/resources/fetchResource')(argv.config, name);
       }
     },
   )
