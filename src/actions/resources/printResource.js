@@ -35,6 +35,6 @@ module.exports = async (configName, resource) => {
       }, null, 2));
     }
   } catch (error) {
-    console.log('fail');
+    console.error(error.message);
   }
 };

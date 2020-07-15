@@ -5,7 +5,6 @@ const { fetchData } = require('@quanxiaoxiao/about-http');
 const compileModle = require('../../lib/compileModle');
 const getResourceOptions = require('../../lib/getResourceOptions');
 
-
 module.exports = async (configName) => {
   const mod = compileModle(configName);
   const { exports: config } = mod;
@@ -40,7 +39,6 @@ module.exports = async (configName) => {
       JSON.parse,
     )(buf);
   } catch (error) {
-    console.log(error);
-    console.log('fail');
+    console.log(error.message);
   }
 };

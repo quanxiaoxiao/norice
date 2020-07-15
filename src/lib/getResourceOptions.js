@@ -1,6 +1,5 @@
 const url = require('url');
 
-
 module.exports = (deployUrl) => {
   if (!/^https?:\/\/\w+/.test(deployUrl)) {
     throw new Error('deployUrl invalid');
@@ -19,6 +18,7 @@ module.exports = (deployUrl) => {
     headers: {
       'x-quan-name': parser.auth.split(':')[0],
       'x-quan-key': parser.auth.split(':')[1],
+      'accept-encoding': 'identity',
     },
   };
   return result;
