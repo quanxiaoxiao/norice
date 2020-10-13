@@ -12,7 +12,6 @@ const hotMiddleware = require('./middlewares/webpackHot');
 const config = require('./config');
 const logger = require('./middlewares/logger');
 
-
 module.exports = (configFileName, port) => {
   const app = new Koa();
   process.env.port = port;
