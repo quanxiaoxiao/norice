@@ -6,11 +6,7 @@ function ignoreAssects(mw) {
       info: console.log,
       error: console.error,
     };
-    if (/\.(js|png|jpg|css)$/.test(ctx.path)) {
-      await next();
-    } else {
-      await mw.call(this, ctx, next);
-    }
+    await mw.call(this, ctx, next);
   };
 }
 
