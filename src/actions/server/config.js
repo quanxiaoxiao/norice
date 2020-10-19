@@ -18,10 +18,10 @@ const watch = require('node-watch');
 
 module.exports = (configFileName) => {
   const configDir = process.cwd();
-  const configPath = path.join(configDir, configFileName);
+  const configPathName = path.join(configDir, configFileName);
   const subject = new Subject().pipe(share());
 
-  watch(configPath)
+  watch(configPathName, { recursive: false })
     .on('change', () => {
       subject.next();
     });
@@ -36,7 +36,7 @@ module.exports = (configFileName) => {
         console.log('generate api ...');
       }),
       debounceTime(1200),
-      switchMap(() => bindNodeCallback(fs.readFile)(configPath, 'utf-8')),
+      switchMap(() => bindNodeCallback(fs.readFile)(configFileName, 'utf-8')),
       scan((prevConfigModule, script) => {
         if (prevConfigModule) {
           prevConfigModule.children.forEach((item) => {
@@ -46,12 +46,12 @@ module.exports = (configFileName) => {
           });
           delete require.cache[prevConfigModule.id];
         }
-        const newConfigModule = new Module(configPath, null);
+        const newConfigModule = new Module(configPathName, null);
         newConfigModule.paths = Module._nodeModulePaths(configDir);
         if (!newConfigModule.filename) {
-          newConfigModule.filename = configPath;
+          newConfigModule.filename = configPathName;
         }
-        newConfigModule._compile(script, configPath);
+        newConfigModule._compile(script, configPathName);
         return newConfigModule;
       }, null),
       map((mod) => {
