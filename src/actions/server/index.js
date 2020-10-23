@@ -10,7 +10,6 @@ const apiParser = require('@quanxiaoxiao/api-parser');
 const devMiddleware = require('./middlewares/webpackDev');
 const hotMiddleware = require('./middlewares/webpackHot');
 const config = require('./config');
-const logger = require('./middlewares/logger');
 
 module.exports = (configFileName, port) => {
   const app = new Koa();
@@ -35,12 +34,27 @@ module.exports = (configFileName, port) => {
           regexp: pathToRegexp(item.pathname),
         }));
       console.log('---------routerList---------');
-      console.log(routeList.map((item) => `${item.method} ${item.pathname}`).join('\n'));
+      console.log(routeList.map((item) => `${item.pathname} \`${item.method}\``).join('\n'));
       console.log('---------routerList---------');
       while (app.middleware.length) {
         app.middleware.pop();
       }
-      app.use(logger);
+      app.use(async (ctx, next) => {
+        const { method, originalUrl } = ctx;
+        ctx.logger = {
+          error: console.error,
+          info: console.log,
+        };
+        try {
+          const start = Date.now();
+          const { ip } = ctx;
+          await next();
+          console.log(`${ctx.path} \`${ctx.method}\` ${ctx.status} -> ${ip} ::${Date.now() - start}ms`);
+        } catch (error) {
+          console.error(`${originalUrl} \`${method}\` ${error.message}`);
+          throw error;
+        }
+      });
       app.use(cors());
       middlewares.forEach((middleware) => {
         app.use(middleware);
@@ -75,15 +89,15 @@ module.exports = (configFileName, port) => {
           fp.keys,
         )(routerItem);
         if (!handleName) {
-          console.error(`[${ctx.method}] ${ctx.path} @:${routerItem.pathname}`);
+          console.error(`${ctx.path} \`${ctx.method}\` [[${routerItem.pathname}]] handler is not exist`);
           ctx.throw(500);
         }
         const handler = routeHandler[handleName];
         if (!handler) {
-          console.error(`[${ctx.method}] ${ctx.path} @:${routerItem.pathname} ::${handleName}`);
+          console.error(`${ctx.path} \`${ctx.method}\` [[${routerItem.pathname}]] handler @${handleName} is not register`);
           ctx.throw(500);
         }
-        console.log(`[${ctx.method}] ${ctx.path} @:${routerItem.pathname} ::${handleName} `);
+        console.log(`${ctx.path} \`${ctx.method}\` [[${routerItem.pathname}]] @${handleName}`);
         ctx.matchs = routerItem.regexp.exec(ctx.path);
         await handler(routerItem[handleName])(ctx, next);
       });

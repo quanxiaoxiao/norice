@@ -25,7 +25,7 @@
     "eslint-config-airbnb": "^18.2.0",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-jsx-a11y": "^6.3.1",
-    "eslint-plugin-react": "^7.21.4"
+    "eslint-plugin-react": "^7.21.5"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org"
@@ -42,7 +42,7 @@
     "@koa/cors": "^3.1.0",
     "@quanxiaoxiao/about-http": "0.0.19",
     "@quanxiaoxiao/api-parser": "^0.1.1",
-    "@quanxiaoxiao/route-handler": "0.0.21",
+    "@quanxiaoxiao/route-handler": "0.0.23",
     "filesize": "^6.1.0",
     "koa": "^2.13.0",
     "koa-logger": "^3.2.1",
