@@ -1,3 +1,4 @@
+/* eslint no-use-before-define: 0 */
 const Koa = require('koa');
 const http = require('http');
 const path = require('path');
@@ -45,13 +46,26 @@ module.exports = (configFileName, port) => {
           error: console.error,
           info: console.log,
         };
+        const start = Date.now();
+        const { ip } = ctx;
+        function handleClose() {
+          ctx.logger.info(`${ctx.path} \`${ctx.method}\` x-> ${ip}`);
+          ctx.res.off('finish', handleFinish);
+        }
+
+        function handleFinish() {
+          ctx.logger.info(`${ctx.path} \`${ctx.method}\` -> ${ip} ${Date.now() - start}ms`);
+          ctx.res.off('close', handleClose);
+        }
+
+        ctx.res.once('close', handleClose);
+        ctx.res.once('finish', handleFinish);
         try {
-          const start = Date.now();
-          const { ip } = ctx;
           await next();
-          console.log(`${ctx.path} \`${ctx.method}\` ${ctx.status} -> ${ip} ::${Date.now() - start}ms`);
         } catch (error) {
           console.error(`${originalUrl} \`${method}\` ${error.message}`);
+          ctx.res.off('close', handleClose);
+          ctx.res.off('finish', handleFinish);
           throw error;
         }
       });
