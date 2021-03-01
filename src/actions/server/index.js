@@ -69,7 +69,9 @@ module.exports = (configFileName, port) => {
           throw error;
         }
       });
+
       app.use(cors());
+
       middlewares.forEach((middleware) => {
         app.use(middleware);
       });
@@ -87,33 +89,31 @@ module.exports = (configFileName, port) => {
                 ['OPTIONS', ...list.map((item) => item.method)].join(','),
               );
               ctx.body = null;
-              return;
+            } else {
+              ctx.throw(405);
             }
-            ctx.throw(405);
-          }
-          if (ctx.method === 'GET') {
+          } else if (ctx.method === 'GET') { // webpack output index.html
             await next();
-            return;
           }
-          ctx.throw(404);
+        } else {
+          const handleName = fp.compose(
+            fp.first,
+            fp.filter((key) => !['method', 'pathname', 'regexp'].includes(key)),
+            fp.keys,
+          )(routerItem);
+          if (!handleName) {
+            console.error(`${ctx.path} \`${ctx.method}\` [[${routerItem.pathname}]] handler is not exist`);
+            ctx.throw(500);
+          }
+          const handler = routeHandler[handleName];
+          if (!handler) {
+            console.error(`${ctx.path} \`${ctx.method}\` [[${routerItem.pathname}]] handler @${handleName} is not register`);
+            ctx.throw(500);
+          }
+          console.log(`${ctx.path} \`${ctx.method}\` [[${routerItem.pathname}]] @${handleName}`);
+          ctx.matchs = routerItem.regexp.exec(ctx.path);
+          await handler(routerItem[handleName])(ctx, next);
         }
-        const handleName = fp.compose(
-          fp.first,
-          fp.filter((key) => !['method', 'pathname', 'regexp'].includes(key)),
-          fp.keys,
-        )(routerItem);
-        if (!handleName) {
-          console.error(`${ctx.path} \`${ctx.method}\` [[${routerItem.pathname}]] handler is not exist`);
-          ctx.throw(500);
-        }
-        const handler = routeHandler[handleName];
-        if (!handler) {
-          console.error(`${ctx.path} \`${ctx.method}\` [[${routerItem.pathname}]] handler @${handleName} is not register`);
-          ctx.throw(500);
-        }
-        console.log(`${ctx.path} \`${ctx.method}\` [[${routerItem.pathname}]] @${handleName}`);
-        ctx.matchs = routerItem.regexp.exec(ctx.path);
-        await handler(routerItem[handleName])(ctx, next);
       });
 
       if (webpackConfig) {
