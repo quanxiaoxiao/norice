@@ -3,10 +3,12 @@ const Koa = require('koa');
 const http = require('http');
 const path = require('path');
 const fs = require('fs');
+const url = require('url');
 const { pathToRegexp } = require('path-to-regexp');
 const cors = require('@koa/cors');
 const fp = require('lodash/fp');
 const routeHandler = require('@quanxiaoxiao/route-handler');
+const { webSocketConnect } = require('@quanxiaoxiao/about-http');
 const apiParser = require('@quanxiaoxiao/api-parser');
 const devMiddleware = require('./middlewares/webpackDev');
 const hotMiddleware = require('./middlewares/webpackHot');
@@ -21,6 +23,7 @@ module.exports = (configFileName, port) => {
 
   let compiler;
   const webpackMiddlewares = [];
+  let routeList = [];
 
   config$.subscribe({
     next: ({
@@ -29,7 +32,7 @@ module.exports = (configFileName, port) => {
       webpackConfig,
       webpack,
     }) => {
-      const routeList = apiParser(api)
+      routeList = apiParser(api)
         .map((item) => ({
           ...item,
           regexp: pathToRegexp(item.pathname),
@@ -152,6 +155,40 @@ module.exports = (configFileName, port) => {
   server.on('error', (error) => {
     console.error(error);
   });
+
+  server.on('upgrade', (request, socket) => {
+    const { pathname } = url.parse(request.url);
+    const routerItem = routeList
+      .find((item) => item.regexp.exec(pathname) && item.method === 'GET' && item.proxy);
+    if (!routerItem) {
+      socket.destroy();
+    } else {
+      const options = typeof routerItem.proxy === 'function'
+        ? routerItem.proxy(request)
+        : {
+          url: routerItem.proxy,
+        };
+      if (typeof options.url !== 'string' || !/^wss?:\/\//.test(options.url)) {
+        socket.destroy();
+      } else {
+        if (typeof routerItem.proxy === 'string' && !/^wss?:\/\/.+\/\w+$/.test(options.url)) {
+          options.url = `${options.url}${pathname}`;
+        }
+        webSocketConnect(
+          {
+            ...options,
+            logger: {
+              error: console.error,
+              info: console.log,
+            },
+          },
+          request,
+          socket,
+        );
+      }
+    }
+  });
+
   server.listen(port, () => {
     console.log(`Listening at port: ${port}`);
   });
