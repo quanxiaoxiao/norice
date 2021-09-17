@@ -21,11 +21,11 @@
     "norice": "bin/norice"
   },
   "devDependencies": {
-    "eslint": "^7.21.0",
+    "eslint": "^7.32.0",
     "eslint-config-airbnb": "^18.2.1",
-    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-import": "^2.24.2",
     "eslint-plugin-jsx-a11y": "^6.4.1",
-    "eslint-plugin-react": "^7.22.0"
+    "eslint-plugin-react": "^7.25.1"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org"
@@ -40,20 +40,20 @@
   "homepage": "https://github.com/quanxiaoxiao/norice",
   "dependencies": {
     "@koa/cors": "^3.1.0",
-    "@quanxiaoxiao/about-http": "0.0.19",
+    "@quanxiaoxiao/about-http": "0.0.29",
     "@quanxiaoxiao/api-parser": "^0.1.1",
-    "@quanxiaoxiao/route-handler": "0.0.23",
-    "filesize": "^6.1.0",
+    "@quanxiaoxiao/route-handler": "0.0.36",
+    "filesize": "^8.0.0",
     "koa": "^2.13.1",
     "koa-logger": "^3.2.1",
     "lodash": "^4.17.21",
     "moment": "^2.29.1",
     "node-watch": "^0.7.1",
     "path-to-regexp": "^6.2.0",
-    "rxjs": "^6.6.6",
+    "rxjs": "^6.6.7",
     "shelljs": "^0.8.4",
-    "table": "^6.0.7",
-    "tar": "^6.1.0",
+    "table": "^6.7.1",
+    "tar": "^6.1.11",
     "webpack-dev-middleware": "^3.7.3",
     "webpack-hot-middleware": "^2.25.0",
     "yargs": "^16.2.0"

@@ -157,7 +157,7 @@ module.exports = (configFileName, port) => {
   });
 
   server.on('upgrade', (request, socket) => {
-    const { pathname } = url.parse(request.url);
+    const { pathname, search } = url.parse(request.url);
     const routerItem = routeList
       .find((item) => item.regexp.exec(pathname) && item.method === 'GET' && item.proxy);
     if (!routerItem) {
@@ -171,9 +171,10 @@ module.exports = (configFileName, port) => {
       if (typeof options.url !== 'string' || !/^wss?:\/\//.test(options.url)) {
         socket.destroy();
       } else {
-        if (typeof routerItem.proxy === 'string' && !/^wss?:\/\/.+\/\w+$/.test(options.url)) {
-          options.url = `${options.url}${pathname}`;
+        if (typeof routerItem.proxy === 'string' && !/^wss?:\/\/[^/]+\//.test(options.url)) {
+          options.url = `${options.url}${pathname}${search}`;
         }
+
         webSocketConnect(
           {
             ...options,
