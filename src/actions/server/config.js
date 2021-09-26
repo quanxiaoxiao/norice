@@ -65,6 +65,7 @@ module.exports = (configFileName) => {
         if (webpackDev) {
           return {
             webpack: mod.require('webpack'),
+            webpackHotMiddleware: mod.require('webpack-hot-middleware'),
             middlewares,
             webpackConfig: webpackDev,
             api,
