@@ -124,7 +124,7 @@ module.exports = (configFileName, port) => {
         if (!compiler) {
           compiler = webpack(webpackConfig);
           webpackMiddlewares.push(devMiddleware(compiler, {
-            publicPath: webpackConfig.output.publicPath,
+            publicPath: webpackConfig.output.publicPath || '/',
             hot: true,
           }));
           webpackMiddlewares.push(async (ctx, next) => {
@@ -189,7 +189,7 @@ module.exports = (configFileName, port) => {
         socket.destroy();
       } else {
         if (typeof routerItem.proxy === 'string' && !/^wss?:\/\/[^/]+\//.test(options.url)) {
-          options.url = `${options.url}${pathname}${search}`;
+          options.url = `${options.url}${pathname}${search || ''}`;
         }
 
         webSocketConnect(
