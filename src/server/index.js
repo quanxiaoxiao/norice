@@ -2,7 +2,6 @@
 const Koa = require('koa');
 const http = require('http');
 const path = require('path');
-const fs = require('fs');
 const url = require('url');
 const { PassThrough } = require('stream');
 const { pathToRegexp } = require('path-to-regexp');
@@ -212,7 +211,6 @@ module.exports = (configFileName, port) => {
   });
 
   process.on('uncaughtException', (error) => {
-    fs.writeFileSync(path.resolve(process.cwd(), 'error.log'), error.message);
     console.error(error.stack);
     const killTimer = setTimeout(() => {
       process.exit(1);
