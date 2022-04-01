@@ -11,7 +11,7 @@ yargs // eslint-disable-line
   .command(
     'server',
     'startup http server',
-    (y) => y.option('port', {
+    (_) => _.option('port', {
       alias: 'p',
       description: 'listen port default is 3000',
       type: 'number',
