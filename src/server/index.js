@@ -3,9 +3,7 @@ const Koa = require('koa');
 const http = require('http');
 const path = require('path');
 const url = require('url');
-const { PassThrough } = require('stream');
 const { pathToRegexp } = require('path-to-regexp');
-const cors = require('@koa/cors');
 const fp = require('lodash/fp');
 const routeHandler = require('@quanxiaoxiao/route-handler');
 const { webSocketConnect } = require('@quanxiaoxiao/about-http');
@@ -30,7 +28,6 @@ module.exports = (configFileName, port) => {
       middlewares,
       webpackConfig,
       webpack,
-      webpackHotMiddleware,
     }) => {
       routeList = apiParser(api)
         .map((item) => ({
@@ -72,8 +69,6 @@ module.exports = (configFileName, port) => {
           throw error;
         }
       });
-
-      app.use(cors());
 
       middlewares.forEach((middleware) => {
         app.use(middleware);
@@ -126,23 +121,6 @@ module.exports = (configFileName, port) => {
             publicPath: webpackConfig.output.publicPath || '/',
             hot: true,
           }));
-          webpackMiddlewares.push(async (ctx, next) => {
-            const expressMiddleware = webpackHotMiddleware(compiler);
-            const stream = new PassThrough();
-            ctx.body = stream;
-            await expressMiddleware(ctx.req, {
-              write: (chunk) => {
-                stream.push(chunk);
-              },
-              writeHead: (status, headers) => {
-                ctx.status = status;
-                ctx.set(headers);
-              },
-              end: () => {
-                stream.end();
-              },
-            }, next);
-          });
           webpackMiddlewares.push(async (ctx) => {
             if (ctx.method === 'GET') {
               const indexHtml = await new Promise((resolve, reject) => {
