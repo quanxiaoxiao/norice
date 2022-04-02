@@ -50,13 +50,14 @@ export default (configFileName, port) => {
         };
         const start = Date.now();
         const { ip } = ctx;
+        ctx.logger.info(`${ip} -> ${ctx.path}${ctx.querystring ? `?${ctx.querystring}` : ''} [${ctx.method}]`);
         function handleClose() {
-          ctx.logger.info(`${ctx.path} \`${ctx.method}\` x-> ${ip}`);
+          ctx.logger.info(`${ip} -x- ${ctx.path} [${ctx.method}], ${Date.now() - start}ms`);
           ctx.res.off('finish', handleFinish);
         }
 
         function handleFinish() {
-          ctx.logger.info(`${ctx.path} \`${ctx.method}\` -> ${ip} ${Date.now() - start}ms`);
+          ctx.logger.info(`${ip} <- ${ctx.path} [${ctx.method}], ${Date.now() - start}ms`);
           ctx.res.off('close', handleClose);
         }
 
@@ -65,7 +66,7 @@ export default (configFileName, port) => {
         try {
           await next();
         } catch (error) {
-          console.error(`${originalUrl} \`${method}\` ${error.message}`);
+          ctx.logger.error(`${originalUrl} [${method}]  \`${error.message}\``);
           ctx.res.off('close', handleClose);
           ctx.res.off('finish', handleFinish);
           throw error;
@@ -121,7 +122,6 @@ export default (configFileName, port) => {
           compiler = webpack(webpackConfig);
           webpackMiddlewares.push(devMiddleware(compiler, {
             publicPath: webpackConfig.output.publicPath || '/',
-            hot: true,
           }));
           webpackMiddlewares.push(async (ctx) => {
             if (ctx.method === 'GET') {
@@ -134,6 +134,7 @@ export default (configFileName, port) => {
                   }
                 });
               });
+              ctx.status = 200;
               ctx.type = 'text/html';
               ctx.body = indexHtml;
             } else {
