@@ -1,6 +1,6 @@
-const webpackDevMiddleware = require('webpack-dev-middleware');
+import webpackDevMiddleware from 'webpack-dev-middleware';
 
-module.exports = (compiler, options) => {
+export default (compiler, options) => {
   const expressMiddleware = webpackDevMiddleware(compiler, options);
   async function middleware(ctx, next) {
     await expressMiddleware(ctx.req, {

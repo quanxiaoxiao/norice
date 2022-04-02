@@ -1,11 +1,7 @@
 {
   "name": "norice",
-  "version": "2.4.5",
-  "main": "bin/norice",
+  "version": "3.0.0",
   "license": "MIT",
-  "engines": {
-    "node": ">= 8.11.0"
-  },
   "description": "Servers JSON files proxy throngh routes",
   "keywords": [
     "JSON",
@@ -18,14 +14,19 @@
   ],
   "author": "zhedongHu <quan_xiaoxiao@qq.com>",
   "bin": {
-    "norice": "bin/norice"
+    "norice": "bin/norice.mjs"
   },
+  "type": "module",
   "devDependencies": {
-    "eslint": "^7.32.0",
-    "eslint-config-airbnb": "^18.2.1",
+    "@babel/eslint-parser": "^7.17.0",
+    "@babel/plugin-proposal-nullish-coalescing-operator": "^7.16.7",
+    "@babel/plugin-proposal-optional-chaining": "^7.16.7",
+    "eslint": "^8.9.0",
+    "eslint-config-airbnb": "^19.0.4",
     "eslint-plugin-import": "^2.25.4",
     "eslint-plugin-jsx-a11y": "^6.5.1",
-    "eslint-plugin-react": "^7.28.0"
+    "eslint-plugin-react": "^7.28.0",
+    "eslint-plugin-react-hooks": "^4.3.0"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org"
@@ -39,15 +40,18 @@
   },
   "homepage": "https://github.com/quanxiaoxiao/norice",
   "dependencies": {
-    "webpack-dev-middleware": "^3.7.3",
-    "@quanxiaoxiao/about-http": "0.0.29",
-    "@quanxiaoxiao/api-parser": "^0.1.1",
-    "@quanxiaoxiao/route-handler": "0.0.37",
+    "@quanxiaoxiao/about-http": "^0.1.4",
+    "@quanxiaoxiao/api-parser": "^0.2.4",
+    "@quanxiaoxiao/route-handler": "^0.1.1",
     "koa": "^2.13.4",
     "lodash": "^4.17.21",
     "node-watch": "^0.7.3",
     "path-to-regexp": "^6.2.0",
     "rxjs": "^7.5.3",
-    "yargs": "^16.2.0"
+    "webpack-dev-middleware": "^3.7.3",
+    "yargs": "^17.4.0"
+  },
+  "engines": {
+    "node": ">= 14.18.0"
   }
 }

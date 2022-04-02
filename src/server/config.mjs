@@ -1,11 +1,11 @@
-const path = require('path');
-const {
+import path from 'node:path';
+import { Module } from 'node:module';
+import { readFile } from 'node:fs';
+import {
   bindNodeCallback,
   Subject,
-} = require('rxjs');
-const { Module } = require('module');
-const fs = require('fs');
-const {
+} from 'rxjs';
+import {
   tap,
   debounceTime,
   map,
@@ -13,10 +13,10 @@ const {
   scan,
   retryWhen,
   share,
-} = require('rxjs/operators');
-const watch = require('node-watch');
+} from 'rxjs/operators';
+import watch from 'node-watch';
 
-module.exports = (configFileName) => {
+export default (configFileName) => {
   const configDir = process.cwd();
   const configPathName = path.join(configDir, configFileName);
   const subject = new Subject().pipe(share());
@@ -36,7 +36,7 @@ module.exports = (configFileName) => {
         console.log('generate api ...');
       }),
       debounceTime(1200),
-      switchMap(() => bindNodeCallback(fs.readFile)(configFileName, 'utf-8')),
+      switchMap(() => bindNodeCallback(readFile)(configFileName, 'utf-8')),
       scan((prevConfigModule, script) => {
         if (prevConfigModule) {
           prevConfigModule.children.forEach((item) => {

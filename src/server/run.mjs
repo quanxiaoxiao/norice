@@ -1,17 +1,19 @@
 /* eslint no-use-before-define: 0 */
-const Koa = require('koa');
-const http = require('http');
-const path = require('path');
-const url = require('url');
-const { pathToRegexp } = require('path-to-regexp');
-const fp = require('lodash/fp');
-const routeHandler = require('@quanxiaoxiao/route-handler');
-const { webSocketConnect } = require('@quanxiaoxiao/about-http');
-const apiParser = require('@quanxiaoxiao/api-parser');
-const devMiddleware = require('./middlewares/webpackDev');
-const config = require('./config');
+import http from 'node:http';
+import path from 'node:path';
+import url from 'node:url';
+import Koa from 'koa';
+import { pathToRegexp } from 'path-to-regexp';
+import fp from 'lodash/fp.js'; // eslint-disable-line import/extensions
+/* eslint-disable import/no-unresolved */
+import routeHandler from '@quanxiaoxiao/route-handler';
+import { webSocketConnect } from '@quanxiaoxiao/about-http';
+import apiParser from '@quanxiaoxiao/api-parser';
+/* eslint-enable import/no-unresolved */
+import devMiddleware from './middlewares/webpackDev.mjs';
+import config from './config.mjs';
 
-module.exports = (configFileName, port) => {
+export default (configFileName, port) => {
   const app = new Koa();
   process.env.port = port;
   const config$ = config(configFileName);
