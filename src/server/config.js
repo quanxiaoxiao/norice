@@ -59,14 +59,14 @@ module.exports = (configFileName) => {
           exports: {
             api = {},
             middlewares = [],
-            webpack,
+            webpackDev,
           },
         } = mod;
-        if (webpack) {
+        if (webpackDev) {
           return {
             webpack: mod.require('webpack'),
             middlewares,
-            webpackConfig: webpack,
+            webpackConfig: webpackDev,
             api,
           };
         }

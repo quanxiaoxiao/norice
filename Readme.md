@@ -10,7 +10,7 @@ norice.config.js
 const path = require('path');
 
 module.exports = {
-  webpack: require('./webpack.dev.js'),
+  webpackDev: require('./webpack.dev.js'),
   api: {
     '/uis': {
       get: {

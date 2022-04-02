@@ -1,13 +1,20 @@
 {
+  "parser": "@babel/eslint-parser",
   "extends": "eslint-config-airbnb",
   "env": {
     "node": true
   },
   "rules": {
     "no-console": 0,
+    "max-len": 0,
+    "no-bitwise": 0,
+    "import/no-unresolved": 0,
+    "no-mixed-operators": 0,
     "no-underscore-dangle": 0,
-    "global-require": 0,
+    "import/prefer-default-export": 0,
+    "class-methods-use-this": 0,
     "no-plusplus": 0,
-    "no-param-reassign": 0
-  }
+    "global-require": 0
+  },
+  "globals": {}
 }
