@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { Module } from 'node:module';
-import { readFile } from 'node:fs';
+import { readFile, statSync } from 'node:fs';
 import {
   bindNodeCallback,
   Subject,
@@ -19,6 +19,17 @@ import watch from 'node-watch';
 export default (configFileName) => {
   const configDir = process.cwd();
   const configPathName = path.join(configDir, configFileName);
+
+  try {
+    const stats = statSync(configPathName);
+    if (!stats.isFile()) {
+      throw new Error('config is not file');
+    }
+  } catch (error) {
+    console.error(`config \`${configPathName}\` not fout`);
+    process.exit(1);
+  }
+
   const subject = new Subject().pipe(share());
 
   watch(configPathName, { recursive: false })
