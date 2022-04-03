@@ -103,15 +103,15 @@ export default (configFileName, port) => {
             fp.keys,
           )(routerItem);
           if (!handleName) {
-            console.error(`${ctx.path} \`${ctx.method}\` [[${routerItem.pathname}]] handler is not exist`);
+            console.warn(`${ctx.path} [${ctx.method}] -> \`${routerItem.pathname}\`, handler is not exist`);
             ctx.throw(500);
           }
           const handler = routeHandler[handleName];
           if (!handler) {
-            console.error(`${ctx.path} \`${ctx.method}\` [[${routerItem.pathname}]] handler @${handleName} is not register`);
+            console.warn(`${ctx.path} [${ctx.method}] -> \`${routerItem.pathname}@${handleName}\`,  is not register`);
             ctx.throw(500);
           }
-          console.log(`${ctx.path} \`${ctx.method}\` [[${routerItem.pathname}]] @${handleName}`);
+          console.log(`${ctx.path} [${ctx.method}] -> \`${routerItem.pathname}@${handleName}\``);
           ctx.matchs = routerItem.regexp.exec(ctx.path);
           await handler(routerItem[handleName])(ctx, next);
         }
@@ -134,7 +134,6 @@ export default (configFileName, port) => {
                   }
                 });
               });
-              ctx.status = 200;
               ctx.type = 'text/html';
               ctx.body = indexHtml;
             } else {
@@ -149,15 +148,12 @@ export default (configFileName, port) => {
     },
   });
 
-  server.on('error', (error) => {
-    console.error(error);
-  });
-
   server.on('upgrade', (request, socket) => {
     const { pathname, search } = url.parse(request.url);
     const routerItem = routeList
       .find((item) => item.regexp.exec(pathname) && item.method === 'GET' && item.proxy);
     if (!routerItem) {
+      console.warn(`ws \`${pathname}\` unmatch`);
       socket.destroy();
     } else {
       const options = typeof routerItem.proxy === 'function'
@@ -166,16 +162,18 @@ export default (configFileName, port) => {
           url: routerItem.proxy,
         };
       if (typeof options.url !== 'string' || !/^wss?:\/\//.test(options.url)) {
+        console.warn(`ws \`${options.url}\` invalid`);
         socket.destroy();
       } else {
         if (typeof routerItem.proxy === 'string' && !/^wss?:\/\/[^/]+\//.test(options.url)) {
           options.url = `${options.url}${pathname}${search || ''}`;
         }
-
+        console.log(`ws: ${pathname} -> ${options.url}`);
         webSocketConnect(
           {
             ...options,
             logger: {
+              warn: console.warn,
               error: console.error,
               info: console.log,
             },
