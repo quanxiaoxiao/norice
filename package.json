@@ -17,17 +17,6 @@
     "norice": "bin/norice.mjs"
   },
   "type": "module",
-  "devDependencies": {
-    "@babel/eslint-parser": "^7.17.0",
-    "@babel/plugin-proposal-nullish-coalescing-operator": "^7.16.7",
-    "@babel/plugin-proposal-optional-chaining": "^7.16.7",
-    "eslint": "^8.9.0",
-    "eslint-config-airbnb": "^19.0.4",
-    "eslint-plugin-import": "^2.25.4",
-    "eslint-plugin-jsx-a11y": "^6.5.1",
-    "eslint-plugin-react": "^7.28.0",
-    "eslint-plugin-react-hooks": "^4.3.0"
-  },
   "publishConfig": {
     "registry": "https://registry.npmjs.org"
   },
@@ -39,6 +28,17 @@
     "url": "https://github.com/quanxiaoxiao/norice/issues"
   },
   "homepage": "https://github.com/quanxiaoxiao/norice",
+  "devDependencies": {
+    "@babel/eslint-parser": "^7.17.0",
+    "@babel/plugin-proposal-nullish-coalescing-operator": "^7.16.7",
+    "@babel/plugin-proposal-optional-chaining": "^7.16.7",
+    "eslint": "^8.9.0",
+    "eslint-config-airbnb": "^19.0.4",
+    "eslint-plugin-import": "^2.25.4",
+    "eslint-plugin-jsx-a11y": "^6.5.1",
+    "eslint-plugin-react": "^7.28.0",
+    "eslint-plugin-react-hooks": "^4.3.0"
+  },
   "dependencies": {
     "@quanxiaoxiao/about-http": "^0.1.4",
     "@quanxiaoxiao/api-parser": "^0.2.4",
