@@ -57,7 +57,7 @@ export default (configFileName, port) => {
         }
 
         function handleFinish() {
-          ctx.logger.info(`${ip} <- ${ctx.path} [${ctx.method}], ${Date.now() - start}ms`);
+          ctx.logger.info(`${ip} <- ${ctx.path} [${ctx.method}] ${ctx.status}, ${Date.now() - start}ms`);
           ctx.res.off('close', handleClose);
         }
 
