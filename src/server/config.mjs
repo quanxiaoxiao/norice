@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { Module } from 'node:module';
+import { Module, createRequire } from 'node:module';
 import { readFile, statSync } from 'node:fs';
 import {
   bindNodeCallback,
@@ -15,6 +15,8 @@ import {
   share,
 } from 'rxjs/operators';
 import watch from 'node-watch';
+
+const require = createRequire(import.meta.url);
 
 export default (configFileName) => {
   const configDir = process.cwd();
