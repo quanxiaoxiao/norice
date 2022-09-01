@@ -5,11 +5,9 @@ import url from 'node:url';
 import Koa from 'koa';
 import { pathToRegexp } from 'path-to-regexp';
 import fp from 'lodash/fp.js'; // eslint-disable-line import/extensions
-/* eslint-disable import/no-unresolved */
 import routeHandler from '@quanxiaoxiao/route-handler';
 import { webSocketConnect } from '@quanxiaoxiao/about-http';
 import apiParser from '@quanxiaoxiao/api-parser';
-/* eslint-enable import/no-unresolved */
 import devMiddleware from './middlewares/webpackDev.mjs';
 import config from './config.mjs';
 
