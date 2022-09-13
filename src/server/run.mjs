@@ -111,6 +111,7 @@ export default (configFileName, port) => {
           }
           console.log(`${ctx.path} [${ctx.method}] -> \`${routerItem.pathname}@${handleName}\``);
           ctx.matchs = routerItem.regexp.exec(ctx.path);
+          ctx.matches = routerItem.regexp.exec(ctx.path);
           await handler(routerItem[handleName])(ctx, next);
         }
       });
